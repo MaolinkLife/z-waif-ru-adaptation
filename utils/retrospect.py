@@ -4,18 +4,22 @@ import API.api_controller
 import utils.zw_logging
 import os
 
+from utils.config_manager import get_config_value
+from utils.character_controller import get_character_name
 
 summary_tokens_count = 310
 search_point_size = 16
 
 enable_debug = True
-char_name = os.environ.get("CHAR_NAME")
+
+# char_name = os.environ.get("CHAR_NAME")
 
 
 # remembers a random past event
 def retrospect_random_mem_summary():
     history = utils.based_rag.history_database
-
+    char_name = get_character_name()
+    
     # find random point in history to think about (not including anything recently)
     search_point = random.randint(0, len(history) - 90)
 

@@ -2,6 +2,7 @@ char_name = ""
 
 hotkeys_locked = False
 speak_shadowchats = False
+use_rvc_output = True
 
 max_tokens = 300
 stream_chats = True

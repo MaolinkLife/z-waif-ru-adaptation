@@ -29,13 +29,13 @@ import utils.hangout
 
 import API.oobaooga_api
 import API.ollama_api
-import API.character_card
+# import API.character_card
 
 from ollama import chat
 from ollama import ChatResponse
 
 from pathlib import Path
-
+from utils.character_controller import get_character_card, load_character_card
 
 load_dotenv()
 
@@ -48,7 +48,8 @@ IMG_URI = f'http://{IMG_PORT}/v1/chat/completions'
 IMG_URL_MODEL = f'http://{IMG_PORT}/v1/engines/'
 
 received_message = ""
-CHARACTER_CARD = os.environ.get("CHARACTER_CARD")
+# CHARACTER_CARD = os.environ.get("CHARACTER_CARD")
+CHARACTER_CARD = get_character_card()
 YOUR_NAME = os.environ.get("YOUR_NAME")
 
 API_TYPE = os.environ.get("API_TYPE")
@@ -86,11 +87,11 @@ VISUAL_PRESET_NAME = os.environ.get("VISUAL_PRESET_NAME")
 vision_guidance_message = "There is an image attached to this message! Please look at it and describe it for everyone in vivid detail! Describe as many details of the image as you can, and comment on what you think of the features!"
 
 # Load in the configurable SoftReset message
-with open("Configurables/SoftReset.json", 'r') as openfile:
+with open("Configurables/SoftReset.json", 'r', encoding="utf-8") as openfile:
     soft_reset_message = json.load(openfile)
 
 # Load in the stopping strings
-with open("Configurables/StoppingStrings.json", 'r') as openfile:
+with open("Configurables/StoppingStrings.json", 'r', encoding="utf-8") as openfile:
     utils.settings.stopping_strings = json.load(openfile)
 
 
@@ -116,7 +117,7 @@ def run(user_input, temp_level):
 
     # Load the history from JSON, to clean up the quotation marks
     #
-    with open("LiveLog.json", 'r') as openfile:
+    with open("LiveLog.json", 'r', encoding="utf-8") as openfile:
         ooga_history = json.load(openfile)
 
 
@@ -281,7 +282,7 @@ def run_streaming(user_input, temp_level):
 
     # Load the history from JSON, to clean up the quotation marks
     #
-    with open("LiveLog.json", 'r') as openfile:
+    with open("LiveLog.json", 'r', encoding="utf-8") as openfile:
         ooga_history = json.load(openfile)
 
 
@@ -667,7 +668,7 @@ def check_load_past_chat():
 
         # Load the history from JSON
 
-        with open("LiveLog.json", 'r') as openfile:
+        with open("LiveLog.json", 'r', encoding="utf-8") as openfile:
             ooga_history = json.load(openfile)
 
         history_loaded = True
@@ -678,7 +679,7 @@ def check_load_past_chat():
         # Make a quick backup of our file (if big enough, that way it won't clear if they happen to load again after it errors to 0 somehow)
         if len(ooga_history) > 30:
             # Export to JSON
-            with open("LiveLogBackup.bak", 'w') as outfile:
+            with open("LiveLogBackup.bak", 'w', encoding="utf-8") as outfile:
                 json.dump(ooga_history, outfile, indent=4)
 
 
@@ -686,7 +687,7 @@ def check_load_past_chat():
 def save_histories():
 
     # Export to JSON
-    with open("LiveLog.json", 'w') as outfile:
+    with open("LiveLog.json", 'w', encoding="utf-8") as outfile:
         json.dump(ooga_history, outfile, indent=4)
 
     # Save RAG database too
@@ -971,6 +972,8 @@ def view_image(direct_talk_transcript):
     image_marker_length = 5     # shorting this so we don't take up a ton of context while image processing
 
     past_messages = []
+    
+    char_card_text = load_character_card()
 
     message_marker = len(ooga_history) - image_marker_length
     if message_marker < 0:  # if we bottom out, then we would want to start at 0 and go down. we check if i is less than, too
@@ -978,7 +981,8 @@ def view_image(direct_talk_transcript):
 
     # Append our system message, if we are using OLLAMA
     if API_TYPE == "Ollama":
-        past_messages.append({"role": "system", "content": vision_guidance_message + "\n\n" + API.character_card.character_card})
+        # past_messages.append({"role": "system", "content": vision_guidance_message + "\n\n" + API.character_card.character_card})
+        past_messages.append({"role": "system", "content": vision_guidance_message + "\n\n" + char_card_text})
 
     past_messages.append({"role": "user", "content": ooga_history[message_marker][0]})
     past_messages.append({"role": "assistant", "content": ooga_history[message_marker][1]})
@@ -1017,7 +1021,7 @@ def view_image(direct_talk_transcript):
     if API_TYPE == "Oobabooga":
 
         # Append the image the good ol' way
-        with open('LiveImage.png', 'rb') as f:
+        with open('LiveImage.png', 'rb', encoding="utf-8") as f:
             img_str = base64.b64encode(f.read()).decode('utf-8')
             prompt = f'{base_prompt}<img src="data:image/jpeg;base64,{img_str}">'
             past_messages.append({"role": "user", "content": prompt})
@@ -1193,7 +1197,7 @@ def view_image_streaming(direct_talk_transcript):
 
     # Send the actual API Request
     if API_TYPE == "Oobabooga":
-        with open('LiveImage.png', 'rb') as f:
+        with open('LiveImage.png', 'rb', encoding="utf-8") as f:
             img_str = base64.b64encode(f.read()).decode('utf-8')
             prompt = f'{base_prompt}<img src="data:image/jpeg;base64,{img_str}">'
             past_messages.append({"role": "user", "content": prompt})
@@ -1496,7 +1500,9 @@ def encode_new_api_ollama(user_input):
     # Gather and send our composite metadata!
 
     # Char card
-    ollama_composite_content = API.character_card.character_card + "\n\n"
+    char_card_text = load_character_card()
+    # ollama_composite_content = API.character_card.character_card + "\n\n"
+    ollama_composite_content = char_card_text + "\n\n"
 
     # Task
     if utils.settings.cur_task_char != "" and utils.settings.cur_task_char != "None":

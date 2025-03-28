@@ -17,7 +17,7 @@ import utils.log_conversion
 import utils.cane_lib
 
 import API.api_controller
-import API.character_card
+# import API.character_card
 import API.task_profiles
 
 import utils.lorebook
@@ -37,10 +37,14 @@ import utils.uni_pipes
 import utils.zw_logging
 
 from dotenv import load_dotenv
+from utils.config_manager import get_config_value
+from utils.character_controller import get_character_name, load_character_card
+
 load_dotenv()
 
 TT_CHOICE = os.environ.get("WHISPER_CHOICE")
-char_name = os.environ.get("CHAR_NAME")
+
+# char_name = os.environ.get("CHAR_NAME")
 
 stored_transcript = "Issue with message cycling!"
 
@@ -223,7 +227,7 @@ def main_message_speak():
 
 
 def message_checks(message):
-
+    char_name = get_character_name()
     #
     # Runs message checks for plugins, such as VTube Studio and Minecraft
     #
@@ -831,9 +835,9 @@ def hangout_interrupt_audio_recordable():
 
     # Minirest to allow the API to start requesting
     time.sleep(2)
-
+    char_name = get_character_name()
     not_run_yet = True
-
+    
     # Auto-close when the api is in an request
     while API.api_controller.is_in_api_request or not_run_yet:
 
@@ -937,7 +941,7 @@ def run_program():
 
 
     # Load in our char name
-    utils.settings.char_name = char_name
+    utils.settings.char_name = get_character_name()
 
     # Load tags and tasks
     utils.tag_task_controller.load_tags_tasks()
@@ -1020,7 +1024,8 @@ def run_program():
 
     # Load our character card and task files (for Ollama)
     if API.api_controller.API_TYPE == "Ollama":
-        API.character_card.load_char_card()
+        # API.character_card.load_char_card()
+        load_character_card()
         API.task_profiles.load_task_profiles()
 
 

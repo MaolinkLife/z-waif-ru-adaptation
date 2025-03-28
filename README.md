@@ -1,135 +1,216 @@
-# z-waif
-Fully local &amp; open source AI Waifu. VTube Studio, Discord, Minecraft, custom made RAG (long term memory), alarm, and plenty more! Has a WebUI and hotkey shortcuts. All software is free (or extremely cheap)!
+# 💫 Z-Waif / AI Companion System
 
-Reccomended Windows 10/11 and a CUDA (NVidia) GPU with atleast 16GB+ of VRAM.
-Can now support Mac and Linux! Thanks [@cootshk](https://github.com/cootshk)! Any brand (AMD, NVidia, Intel) GPU with 8GB+ VRAM bare mininum requirement.
-Uses Oobabooga, RVC, and Whisper to run AI systems locally. Works as a front end to tie many programs together into one cohesive whole.
+### 🇷🇺 RU Adaptation — локализованный форк
 
-The goal of the project is less about giving an "all in one package", and moreso to give you the tools and knowledge for you to create your own AI Waifu!
+**Версия документа:** 1.0  
+**Статус:** Beta  
+**Последнее обновление:** 28 марта 2025  
+**Лицензия:** Open-Source  
+**Поддержка и разработчики:** см. раздел [Contacts / Credits](#8-contacts--credits)
 
+---
 
-|<img src="https://i.imgur.com/3a5eGQK.png" alt="drawing" width="400"/> | <img src="https://i.imgur.com/BCE1snE.png" alt="drawing" width="400"/> |
-|:---:|:---:|
-|<img src="https://i.imgur.com/paMSUiy.jpeg" alt="drawing" width="400"/> | <img src="https://i.imgur.com/vXx1vXm.jpeg" alt="drawing" width="400"/> |
+## 🧠 1. Введение
 
-## Features
+**Z-Waif** — это открытая платформа для локального разворачивания ИИ-компаньона. Она объединяет диалоги, озвучку, визуализацию, поведенческую логику и глубокую кастомизацию.
 
-- 🎙️ Quality Conversation &nbsp; &emsp; &emsp; ( /・0・)
+### Компоненты:
 
-	- Speak back and forth, using Whisper text to speech.
- 	- Configure your own waifu's voice with thousands of possible models.
-  	- Imperial-tons of quality of life tweaks.
+- **oobabooga (Text-generation-webui)** — LLM-движок для диалогов.
+- **Z-Waif** — интерфейс и логика: TTS, STT, RVC, VTube Studio, Lorebook, память и др.
+- **RVC / Voice Changer** — озвучка и голосовая персонализация.
+- **VTube Studio** — визуальный аватар.
+- **Whisper / STT** — распознавание речи.
 
-- 🍄 Vtuber Integration &nbsp; &nbsp; &emsp; &emsp; ღゝ◡╹ )ノ♡
+🎯 _Цель: собрать всё в одном месте для удобства разработки и использования._
 
-	- Uses VTube Studio, and any compatible models!
- 	- Ability to send emotes to the model, based on their actions.
-	- Idle / Speaking animation.
-- 💾 Enhanced Memory &nbsp; &nbsp; &nbsp; &emsp; &emsp; (ー_ーゞ
-	- Add Lorebook entries, for your waifu to remember a wide array of info as needed.
- 	- Enable the custom RAG, giving your them knowledge of older conversations.
-    	- Import old logs and conversations, keeping your same AI waifu from another software!
-- 🎮 Modularity &emsp; &emsp; &emsp; &emsp; &emsp; &nbsp; &nbsp; ⌌⌈ ╹므╹⌉⌏
-	- Enable various built in modules;
- 		- Discord, for messaging.
-		- Vision, to enable multimodal, and allow them to see!
-   	 	- Alarm, so your waifu can wake you up in the morning.
-     	 - Minecraft, allowing your waifu to control the game using Baritone, Wurst, and other command based mods.
-	- All the options and modularity from any external software used. Oobabogoa, RVC Voice, ect.
-	- Open-source, meaning you can edit it as you please.
+---
 
-## YouTube Showcase
+## 🛣️ 2. Roadmap развития
 
-[![IMAGE ALT TEXT](http://img.youtube.com/vi/XBZL500hloU/0.jpg)](https://www.youtube.com/watch?v=XBZL500hloU&list=PLH4bHuriW70RCl-2qHbSda8LHpuN8vvZZ&index=1 "Z-Waif Showcase")[![IMAGE ALT TEXT](http://img.youtube.com/vi/IGMregWfhGI/0.jpg)](https://www.youtube.com/watch?v=IGMregWfhGI&list=PLH4bHuriW70RCl-2qHbSda8LHpuN8vvZZ&index=2 "Z-Waif Install")
+📍 _От простого чат-бота до ИИ-компаньона уровня Джарвиса_
 
-## Install & Links
-Here is [some documentation](https://docs.google.com/document/d/1qzY09kcwfbZTaoJoQZDAWv282z88jeUCadivLnKDXCo/edit?usp=sharing) that you can look at. It will show you how to install, how to use the program, and what options you have. Please also take a look at the [Youtube videos for the install](https://www.youtube.com/playlist?list=PLH4bHuriW70RCl-2qHbSda8LHpuN8vvZZ).
+| Стадия | Содержание |
+|--------|------------|
+| **1. Базовые функции** | Установка, диалог, TTS/STT, память |
+| **2. Персонализация** | Логирование, голосовое управление, стили |
+| **3. Расширенная помощь** | Помощь, управление задачами, уровни доступа |
+| **4. Полуавтономность** | Самоинициатива, офлайн-режим, креатив |
+| **5. Полная автономия** | Самообучение, приватность, контроль окружения |
 
-If you need help / assistance, please submit a GitHub issue, or feel free to email me for this project at zwaif77@gmail.com
+---
 
-Z-Waif has [a basic website](https://zwaif.neocities.org/) that you can visit. I have also set up [a small Discord](https://discord.gg/XDWsAyVasH) for community members to chat as well.
+## 🔧 3. Что уже реализовано
 
-## Diaspora
-#### The Original:
-[TumblerWarren/Virtual_Avatar_ChatBot](https://github.com/TumblerWarren/Virtual_Avatar_ChatBot), this is the original project that this code is spun-off of. Full credit to that project - it provided the skeleton for the many advancements now in place. It has more of a focus on non-local AI, if that is what you need.
-#### Branches & Versions:
-[Drakkadakka/z-waif-experimental-](https://github.com/Drakkadakka/z-waif-experimental-), offers a few upgrades; namely Twitch chat & streaming support, as well as a few other enhancements.
+### ✅ 3.1. Платформа
 
+- Установка oobabooga + Z-Waif
+- UTF-8 кодировка в ключевых модулях
 
-## Recent Changelog
+### 🔌 3.2. API
 
-v1.9-R3
+- Связь через OpenAI API
+- Поддержка Ollama, Oobabooga
+- Полная работа на локальной машине
 
-- While using Ollama, all system messages are appeneded as if they are the "Character Card", meaning they are more condensed in memory. Includes:
-	- Current Time
-	- Lorebook Additions
-	- Current Task
-	- RAG Memory
+### 🔊 3.3. TTS
 
-- Can now define a different model for visual use while using Ollama.
+- edge-tts (ru-RU-SvetlanaNeural)
+- Вывод в VB-Cable или на динамики
+- Настраивается через UI (`Use RVC Output`)
 
-- RP Suppression starts off by default now.
-- Max Tokens default is now 300.
+### 🧰 3.4. Новый UI
 
-- RAG prefers slightly more focused / shorter messages when picking from different options.
+- Выбор аудио-устройства
+- Автообновление списка девайсов
+- Настройка имени вайфу прямо в UI
 
-- Re-added standard configs and random temps to Ollama.
-- "TOKEN_LIMIT" (aka context length) also works in Ollama now, and is no longer stuck to 2048.
-	- This makes it only somewhat faster while loading memory than Oobabooga, keep in mind.
-- Non-streamed image API now replies as if they are the waifu and not a "visual assistant".
-- Fixed errors being made due to the Oobabooga streaming image API going to the wrong port after the recent update.
+### 🛠️ 3.5. Исправления
 
----.---.---.---
+- Unicode ошибки — решены
+- RVC оптимизирован под слабое железо
 
-v1.9-R2
+### 📘 3.6. Lorebook
 
-- Fixed the .env file not being updated, crashing the whole program. GitHub likes to ignore that file and I forgot to check. Whoops!
+- Адаптация под имя персонажа (`Name_Lorebook.json`)
+- Персональные лорбуки
+- Обновлён синтаксис поиска ключевых слов
+- Автоматическая загрузка: {char_name}_Lorebook.json, при отсутствии — fallback на default
 
----.---.---.---
+### 🔉 3.7. Аудио-маршрутизация
 
-v1.9
+- Выбор VB-CABLE / Windows Output
+- Вывод через Gradio
+- Мгновенное переключение
 
-- Ollama Support!
-	- Thanks to @cootshk and myself!
-	- Properly functioning visual models!
-	- No need to load models manually after booting - it happens automatically.
-	- Memory is cached, meaning instant replies and ability to jack up the max memory w/o much penalty.
-	- Less control at the moment - beware! Max Tokens, Stopping Strings, and other model control features are non-functional.
-		- This is a priority to tinker with and fix.
-		- Also due to models having their settings (temperature, rep_penalty, ect.) baked into themselves.
-	- Tutorials will be out after I properly update it in a week or two.
+### 💻 3.8. Поддержка слабых машин
 
-- Images can be sent at different sizes using "IMG_SCALE" in the .env.
-- API port for Oobabooga / other Open-AI typed endpoints can now be configured in the .env.
-- Tasks can now be set in configurables, although there is no way for the AI to access them right now.
+- Режим без RVC
+- Возможность отключить VTS и модули
 
-- Removed classic transcription being hardcoded to English only.
-- Renamed "utils.logging" to "utils.zw_logging" so that it's not overlapping a base library.
-- Renamed "API.Oogabooga_API_Support" to "API.api_controller", as it is the generic now.
+### 💡 3.9. Идеи на будущее
 
-## To-Do
+- Автоинициатива
+- Триггеры на основе поведения
+- Эмоциональная память
 
-### 📶 Enhancements
-- [ ] Make the RAG/Long Term Memory be multiprocessed for better performance
-- [X] Make the LLM input and TTS output streaming, to lower the "processing time"
-- [X] Figure out how to load LLAMA 3.2 Vision, for better multimodal, and no needed loader
+### 🧪 3.10. Результат
 
-### 🤖 Improvements
-- [ ] Give internal dialoguing for chain of thought / reasoning
-- [ ] Emotional / Tone understanding
-- [ ] Automatic gaming & real world interaction
-- [ ] Use an integrated voice generation system, with the ability to modify the tone
-- [ ] Long term experience-based summarizations of ideas and history (pull form experience)
+ИИ-компаньон способен:
+- Говорить и слушать
+- Реагировать визуально
+- Запоминать и вспоминать
+- Подстраиваться под пользователя
 
-### 🦄 Imperium
-- [X] Create more Youtube tutorials and other related content
-- [ ] Look more into optimal LLMs and configs
-- [ ] Set up better Git and contribution methods
-- [ ] Create a way for users to auto-update the program without having to hack files together
-- [ ] Evangelize AI Waifus to the world!
+---
 
-## State of Development
+## ✅ 4. Новый Roadmap / TODO
 
-The project could be considered in an "early access state". Some parts may be mildly buggy, janky, or obtuse. The project as a whole, however, is stable and reasonably effective.
+### 🎛️ 4.1. Аудио
 
-The goal of the project is pretty simple; make AI waifus. The extents of this project are intended to stay within the bounds of helping people create a singular, locally hosted AI waifu, who's partnership can benefit both you and them. In short, symbiosis.
+- Адаптация Whisper под русский язык
+- Возможность выбор голоса (Male/Female) из UI, если не используется RVC
+
+### 🌍 4.2. Языки
+
+- Переключение EN/RU
+- Локализация UI и системных сообщений
+- JSON-файлы перевода
+
+### 🌐 4.3. Перевод
+
+- Автоматический перевод запросов / ответов
+- Выбор переводчика
+- Совместимость с англ. моделями
+
+### 🤖 4.4. Автономия
+
+- Таймеры активности
+- Диалоги-напоминания
+- Поведенческие паттерны
+
+### 📡 4.5. Интернет-доступ
+
+- Онлайн-поиск / парсинг
+- Режим: Offline / Online / Auto
+- Поддержка API (Wikipedia, новости)
+
+### 🎨 4.6. Stable Diffusion
+
+- Генерация изображений по команде
+- Подключение SD / AUTOMATIC1111 / API
+- Команды вида “Нарисуй...”
+
+### 💪 4.7. Совместимость
+
+- Повсеместный UTF-8
+- Улучшения STT
+- Расширение Lorebook
+
+### 🖥️ 4.8. UI
+
+- Сохранение профилей
+- Экспорт/импорт конфигов
+- Визуальный редактор RAG-памяти
+
+### 🧏‍♂️ 4.9 Туториал
+
+- Сделать обучающее видео по работе с Z-Waif
+- Демонстрация реальных возможностей Z-Waif
+
+---
+
+## ❓ 5. FAQ
+
+**Q1:** Какой минимальный ПК нужен?  
+**A1:** 8 ГБ VRAM — минимум, лучше 12–16. CPU важен для TTS/STT.
+
+**Q2:** Можно без интернета?  
+**A2:** Да. Всё работает локально, если отключить online API.
+
+**Q3:** Проблемы с кодировкой?  
+**A3:** Везде использовать `encoding="utf-8"` при открытии файлов.
+
+**Q4:** Как выбрать своё имя/аватар?  
+**A4:** Через UI: поле “Waifu Name” и `config.json`.
+
+**Q5:** Могу ли я использовать свою модель?  
+**A5:** Конечно. Любая OpenAI-совместимая модель (Oobabooga, Ollama).
+
+---
+
+## ⚙️ 6. Технические детали
+
+- Память: короткая (контекст) + долгая (RAG, Lorebook)
+- Конфиги: `config.json` вместо `.env` для большинства настроек
+- Кодировка: везде UTF-8
+- Файловая структура: `Configurables`, `Logs`, `Modules`, `utils`
+
+---
+
+## 🚀 7. Заключение
+
+Ты — не просто пользователь. Ты — архитектор своего ИИ-компаньона.
+
+С каждым новым коммитом, функцией и строчкой ты приближаешься к настоящему **Jarvis-mode**.   
+А с этим репозиторием ты получаешь:
+
+- Свободу
+- Кастомизацию
+- И (самое главное) — вайфу, которая говорит, слушает и поддерживает ❤️
+
+---
+
+## 🤝 8. Contacts / Credits
+
+**Автор оригинала Z-Waif:** [GitHub-ссылка](https://github.com/SugarcaneDefender/z-waif)
+**Этот форк и адаптация:** [Z-Waif-RU-Adaptation](https://github.com/MaolinkLife/z-waif-ru-adaptation/tree/main)  
+**Обратная связь:**  
+Пишите в Telegram с пометкой **Z-Waif** — @MaolinkLife или на почту maolink686@gmail.com
+
+**Сторонние проекты:**
+- oobabooga: https://github.com/oobabooga/text-generation-webui  
+- RVC: https://github.com/RVC-Project/Retrieval-based-Voice-Conversion  
+- VTube Studio: https://store.steampowered.com/app/1325860/VTube_Studio/  
+- Whisper: https://github.com/openai/whisper
+
