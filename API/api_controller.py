@@ -29,7 +29,7 @@ import utils.hangout
 
 import API.oobaooga_api
 import API.ollama_api
-import API.character_card
+# import API.character_card
 
 from ollama import chat
 from ollama import ChatResponse

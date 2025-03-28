@@ -17,7 +17,7 @@ import utils.log_conversion
 import utils.cane_lib
 
 import API.api_controller
-import API.character_card
+# import API.character_card
 import API.task_profiles
 
 import utils.lorebook
