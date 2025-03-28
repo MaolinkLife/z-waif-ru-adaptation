@@ -11,6 +11,7 @@ import time
 import utils.zw_logging
 import utils.settings
 from tqdm import tqdm
+from utils.config_manager import get_config_value
 
 # Words and their data
 word_database = {
@@ -39,7 +40,8 @@ history_demarc = 20         # This is the point where the history gets considere
 manual_recalculate_ignore_latest = False
 is_setting_up = True
 
-char_name = os.environ.get("CHAR_NAME")
+char_name = get_config_value("char_name", "Waifu") # From config 
+# char_name = os.environ.get("CHAR_NAME")
 
 
 #

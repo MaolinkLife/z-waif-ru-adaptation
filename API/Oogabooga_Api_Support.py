@@ -26,6 +26,8 @@ import threading
 import utils.hotkeys
 import utils.vtube_studio
 import utils.hangout
+from utils.character_controller import get_character_card, load_character_card
+
 
 
 load_dotenv()
@@ -39,7 +41,8 @@ IMG_URI = f'http://{IMG_PORT}/v1/chat/completions'
 IMG_URL_MODEL = f'http://{IMG_PORT}/v1/engines/'
 
 received_message = ""
-CHARACTER_CARD = os.environ.get("CHARACTER_CARD")
+# CHARACTER_CARD = os.environ.get("CHARACTER_CARD")
+CHARACTER_CARD = get_character_card()
 YOUR_NAME = os.environ.get("YOUR_NAME")
 
 history_loaded = False

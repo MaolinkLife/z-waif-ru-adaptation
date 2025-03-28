@@ -35,7 +35,7 @@ from ollama import chat
 from ollama import ChatResponse
 
 from pathlib import Path
-
+from utils.character_controller import get_character_card, load_character_card
 
 load_dotenv()
 
@@ -48,7 +48,8 @@ IMG_URI = f'http://{IMG_PORT}/v1/chat/completions'
 IMG_URL_MODEL = f'http://{IMG_PORT}/v1/engines/'
 
 received_message = ""
-CHARACTER_CARD = os.environ.get("CHARACTER_CARD")
+# CHARACTER_CARD = os.environ.get("CHARACTER_CARD")
+CHARACTER_CARD = get_character_card()
 YOUR_NAME = os.environ.get("YOUR_NAME")
 
 API_TYPE = os.environ.get("API_TYPE")
@@ -971,6 +972,8 @@ def view_image(direct_talk_transcript):
     image_marker_length = 5     # shorting this so we don't take up a ton of context while image processing
 
     past_messages = []
+    
+    char_card_text = load_character_card()
 
     message_marker = len(ooga_history) - image_marker_length
     if message_marker < 0:  # if we bottom out, then we would want to start at 0 and go down. we check if i is less than, too
@@ -978,7 +981,8 @@ def view_image(direct_talk_transcript):
 
     # Append our system message, if we are using OLLAMA
     if API_TYPE == "Ollama":
-        past_messages.append({"role": "system", "content": vision_guidance_message + "\n\n" + API.character_card.character_card})
+        # past_messages.append({"role": "system", "content": vision_guidance_message + "\n\n" + API.character_card.character_card})
+        past_messages.append({"role": "system", "content": vision_guidance_message + "\n\n" + char_card_text})
 
     past_messages.append({"role": "user", "content": ooga_history[message_marker][0]})
     past_messages.append({"role": "assistant", "content": ooga_history[message_marker][1]})
@@ -1496,7 +1500,9 @@ def encode_new_api_ollama(user_input):
     # Gather and send our composite metadata!
 
     # Char card
-    ollama_composite_content = API.character_card.character_card + "\n\n"
+    char_card_text = load_character_card()
+    # ollama_composite_content = API.character_card.character_card + "\n\n"
+    ollama_composite_content = char_card_text + "\n\n"
 
     # Task
     if utils.settings.cur_task_char != "" and utils.settings.cur_task_char != "None":

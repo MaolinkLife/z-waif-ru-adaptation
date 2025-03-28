@@ -4,6 +4,9 @@ import utils.settings
 import os
 import json
 
+from utils.config_manager import get_config_value
+from utils.character_controller import get_character_name
+
 ALARM_TRIGGERED = False
 ALARM_READY = False
 ALARM_MESSAGE = "[System Message] There was an issue with the alarm system... whoops!"
@@ -39,7 +42,8 @@ def alarm_loop():
             ALARM_TRIGGERED = True
 
             # Get name (can't declair at the start, donno why, don't care!)
-            char_name = os.environ.get("CHAR_NAME")
+            char_name = get_character_name()
+            # char_name = os.environ.get("CHAR_NAME")
 
             # Make our message
             cur_date_string = current_time.strftime("%B/%d/%Y")

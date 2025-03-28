@@ -1,7 +1,28 @@
+# --- Личные данные и лор ---
 *_lorebook.json
 *_softreset.json
+*_charactercard.yaml
 config.json
-log.txt
 
-*__pycache__
-venv*
+# --- Логи и временные файлы ---
+log.txt
+livelog.json
+livelogbackup.bak
+token.txt
+
+# --- Python cache ---
+__pycache__/
+*.py[cod]
+
+# --- Виртуальное окружение ---
+venv/
+.venv/
+
+# --- Базы данных и RAG-память ---
+RAG_Database/
+
+# --- IDE-шные хвосты ---
+.vscode/
+.idea/
+*.swp
+*.bak
