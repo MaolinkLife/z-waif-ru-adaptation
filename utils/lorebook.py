@@ -7,7 +7,7 @@ total_lore_default = "Here is some lore about the current topics from your loreb
 
 
 # Load the LORE_BOOK, it is now JSON configurable!
-with open("Configurables/Lorebook.json", 'r') as openfile:
+with open("Configurables/Lorebook.json", 'r', encoding="utf-8") as openfile:
     LORE_BOOK = json.load(openfile)
 
 

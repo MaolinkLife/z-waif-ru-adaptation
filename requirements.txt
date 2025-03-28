@@ -14,7 +14,7 @@ python-dotenv~=1.0.0
 PyAudio~=0.2.14
 pydub~=0.25.1
 pyvts~=0.3.2
-numpy~=1.24.4
+numpy~=1.26.4
 fastapi==0.112.2
 pyautogui
 sseclient-py
@@ -22,3 +22,5 @@ tqdm
 faster-whisper
 ollama
 PyYAML
+playsound==1.2.2
+edge-tts

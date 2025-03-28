@@ -11,6 +11,20 @@ import utils.tag_task_controller
 import utils.voice
 import json
 
+from utils.audio_devices import (
+    get_output_devices,
+    get_device_name_by_id,
+    get_windows_output_candidates,
+)
+from utils.config_manager import (
+    get_config_value,
+    set_config_value,
+    ensure_config_exists,
+)
+
+# TODO: Perhaps it should be moved to main.py
+ensure_config_exists()
+
 # Import the gradio theme color
 with open("Configurables/GradioThemeColor.json", 'r') as openfile:
     gradio_theme_color = json.load(openfile)
@@ -19,7 +33,6 @@ based_theme = gr.themes.Base(
     primary_hue=gradio_theme_color,
     secondary_hue="indigo",
     neutral_hue="zinc",
-
 )
 
 
@@ -371,7 +384,19 @@ with gr.Blocks(theme=based_theme, title="Z-Waif UI") as demo:
 
             hotkey_checkbox_view = gr.Checkbox(label="Disable Keyboard Shortcuts (Input Toggle Lock)")
 
+        #
+        # Use RVC
+        #
+        with gr.Row():
 
+            def use_rvc_button_click():
+                utils.settings.use_rvc_output = not utils.settings.use_rvc_output
+                return
+
+            use_rvc_button = gr.Button(value="Check/Uncheck")
+            use_rvc_button.click(fn=use_rvc_button_click)
+
+            use_rvc_checkbox_view = gr.Checkbox(label="Use RVC (VB-Cable output)")
         #
         # Shadowchats
         #
@@ -389,6 +414,85 @@ with gr.Blocks(theme=based_theme, title="Z-Waif UI") as demo:
 
                 shadowchats_checkbox_view = gr.Checkbox(label="Speak Typed Chats / Shadow Chats")
 
+        #
+        # Select device output
+        #
+
+        with gr.Row():
+            device_options = get_output_devices()
+            current_id = get_config_value("voice.output_id", 0)
+            current_label = get_device_name_by_id(current_id)
+
+            device_dropdown = gr.Dropdown(
+                choices=[f"{name} (ID: {idx})" for idx, name in device_options],
+                value=current_label,  # View actual selection
+                label="🎧 Virtual Output Device",
+            )
+
+            def set_device_choice(choice):
+                selected_id = int(choice.split("ID:")[1].replace(")", "").strip())
+                set_config_value("voice.output_id", selected_id)
+                # TODO: transfer to application logger
+                print(f"Saved to config: output_id = {selected_id}")
+                return
+
+            device_dropdown.change(fn=set_device_choice, inputs=device_dropdown)
+
+            refresh_button = gr.Button("🔄 Refresh Devices")
+
+            def refresh_devices():
+                updated_devices = get_output_devices()
+                current_id = get_config_value("voice.output_id", 0)
+                current_label = get_device_name_by_id(current_id)
+
+                dropdown_choices = [
+                    f"{name} (ID: {idx})" for idx, name in updated_devices
+                ]
+
+                # If the current device is still in the list, save it
+                return gr.update(
+                    choices=dropdown_choices,
+                    value=current_label if current_label in dropdown_choices else None,
+                )
+
+            refresh_button.click(fn=refresh_devices, outputs=device_dropdown)
+
+        with gr.Row():
+            win_device_options = get_windows_output_candidates()
+            win_current_id = get_config_value("voice.windows_output_id", 0)
+            win_current_label = get_device_name_by_id(win_current_id)
+
+            windows_dropdown = gr.Dropdown(
+                choices=[f"{name} (ID: {idx})" for idx, name in win_device_options],
+                value=win_current_label,
+                label="🖥️ Windows Output Device",
+            )
+
+            def set_win_device_choice(choice):
+                selected_id = int(choice.split("ID:")[1].replace(")", "").strip())
+                set_config_value("voice.windows_output_id", selected_id)
+                # TODO: transfer to application logger
+                print(f"Saved to config: windows_output_id = {selected_id}")
+                return
+
+            windows_dropdown.change(fn=set_win_device_choice, inputs=windows_dropdown)
+
+            win_refresh_btn = gr.Button("🔄 Refresh Windows Outputs")
+
+            def refresh_win_devices():
+                updated_devices = get_windows_output_candidates()
+                current_id = get_config_value("voice.windows_output_id", 0)
+                current_label = get_device_name_by_id(current_id)
+                dropdown_choices = [
+                    f"{name} (ID: {idx})" for idx, name in updated_devices
+                ]
+
+                return gr.update(
+                    choices=dropdown_choices,
+                    value=current_label if current_label in dropdown_choices else None,
+                )
+
+            win_refresh_btn.click(fn=refresh_win_devices, outputs=windows_dropdown)
 
         #
         # Soft Reset
@@ -533,13 +637,27 @@ with gr.Blocks(theme=based_theme, title="Z-Waif UI") as demo:
 
         def update_settings_view():
 
-            return utils.settings.hotkeys_locked, utils.settings.speak_shadowchats, utils.settings.supress_rp, utils.settings.newline_cut, utils.settings.asterisk_ban
+            return (
+                utils.settings.hotkeys_locked,
+                utils.settings.speak_shadowchats,
+                utils.settings.supress_rp,
+                utils.settings.newline_cut,
+                utils.settings.asterisk_ban,
+                utils.settings.use_rvc_output,
+            )
 
-
-        demo.load(update_settings_view, every=0.05, outputs=[hotkey_checkbox_view, shadowchats_checkbox_view, supress_rp_checkbox_view, newline_cut_checkbox_view, asterisk_ban_checkbox_view])
-
-
-
+        demo.load(
+            update_settings_view,
+            every=0.05,
+            outputs=[
+                hotkey_checkbox_view,
+                shadowchats_checkbox_view,
+                supress_rp_checkbox_view,
+                newline_cut_checkbox_view,
+                asterisk_ban_checkbox_view,
+                use_rvc_checkbox_view,
+            ],
+        )
 
     #
     # Tags / Tasks
@@ -559,7 +677,6 @@ with gr.Blocks(theme=based_theme, title="Z-Waif UI") as demo:
 
             # Now swap the task
             utils.tag_task_controller.set_task(input_text)
-
 
 
         with gr.Row():

@@ -86,11 +86,11 @@ VISUAL_PRESET_NAME = os.environ.get("VISUAL_PRESET_NAME")
 vision_guidance_message = "There is an image attached to this message! Please look at it and describe it for everyone in vivid detail! Describe as many details of the image as you can, and comment on what you think of the features!"
 
 # Load in the configurable SoftReset message
-with open("Configurables/SoftReset.json", 'r') as openfile:
+with open("Configurables/SoftReset.json", 'r', encoding="utf-8") as openfile:
     soft_reset_message = json.load(openfile)
 
 # Load in the stopping strings
-with open("Configurables/StoppingStrings.json", 'r') as openfile:
+with open("Configurables/StoppingStrings.json", 'r', encoding="utf-8") as openfile:
     utils.settings.stopping_strings = json.load(openfile)
 
 
@@ -116,7 +116,7 @@ def run(user_input, temp_level):
 
     # Load the history from JSON, to clean up the quotation marks
     #
-    with open("LiveLog.json", 'r') as openfile:
+    with open("LiveLog.json", 'r', encoding="utf-8") as openfile:
         ooga_history = json.load(openfile)
 
 
@@ -281,7 +281,7 @@ def run_streaming(user_input, temp_level):
 
     # Load the history from JSON, to clean up the quotation marks
     #
-    with open("LiveLog.json", 'r') as openfile:
+    with open("LiveLog.json", 'r', encoding="utf-8") as openfile:
         ooga_history = json.load(openfile)
 
 
@@ -667,7 +667,7 @@ def check_load_past_chat():
 
         # Load the history from JSON
 
-        with open("LiveLog.json", 'r') as openfile:
+        with open("LiveLog.json", 'r', encoding="utf-8") as openfile:
             ooga_history = json.load(openfile)
 
         history_loaded = True
@@ -678,7 +678,7 @@ def check_load_past_chat():
         # Make a quick backup of our file (if big enough, that way it won't clear if they happen to load again after it errors to 0 somehow)
         if len(ooga_history) > 30:
             # Export to JSON
-            with open("LiveLogBackup.bak", 'w') as outfile:
+            with open("LiveLogBackup.bak", 'w', encoding="utf-8") as outfile:
                 json.dump(ooga_history, outfile, indent=4)
 
 
@@ -686,7 +686,7 @@ def check_load_past_chat():
 def save_histories():
 
     # Export to JSON
-    with open("LiveLog.json", 'w') as outfile:
+    with open("LiveLog.json", 'w', encoding="utf-8") as outfile:
         json.dump(ooga_history, outfile, indent=4)
 
     # Save RAG database too
@@ -1017,7 +1017,7 @@ def view_image(direct_talk_transcript):
     if API_TYPE == "Oobabooga":
 
         # Append the image the good ol' way
-        with open('LiveImage.png', 'rb') as f:
+        with open('LiveImage.png', 'rb', encoding="utf-8") as f:
             img_str = base64.b64encode(f.read()).decode('utf-8')
             prompt = f'{base_prompt}<img src="data:image/jpeg;base64,{img_str}">'
             past_messages.append({"role": "user", "content": prompt})
@@ -1193,7 +1193,7 @@ def view_image_streaming(direct_talk_transcript):
 
     # Send the actual API Request
     if API_TYPE == "Oobabooga":
-        with open('LiveImage.png', 'rb') as f:
+        with open('LiveImage.png', 'rb', encoding="utf-8") as f:
             img_str = base64.b64encode(f.read()).decode('utf-8')
             prompt = f'{base_prompt}<img src="data:image/jpeg;base64,{img_str}">'
             past_messages.append({"role": "user", "content": prompt})

@@ -1,0 +1,7 @@
+*_lorebook.json
+*_softreset.json
+config.json
+log.txt
+
+*__pycache__
+venv*
