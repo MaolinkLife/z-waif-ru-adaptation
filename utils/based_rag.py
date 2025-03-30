@@ -553,13 +553,13 @@ def store_rag_history():
         return
 
     # Save, Export to JSON
-    with open("RAG_Database/LiveRAG_Words.json", 'w') as outfile:
+    with open("RAG_Database/LiveRAG_Words.json", 'w', encoding="utf-8") as outfile:
         json.dump(word_database, outfile, indent=4)
 
-    with open("RAG_Database/LiveRAG_HistoryWordID.json", 'w') as outfile:
+    with open("RAG_Database/LiveRAG_HistoryWordID.json", 'w', encoding="utf-8") as outfile:
         json.dump(histories_word_id_database, outfile, indent=4)
 
-    with open("RAG_Database/LiveRAG_History.json", 'w') as outfile:
+    with open("RAG_Database/LiveRAG_History.json", 'w', encoding="utf-8") as outfile:
         json.dump(history_database, outfile, indent=4)
 
 
@@ -589,13 +589,13 @@ def load_rag_history():
         if show_rag_debug:
             utils.zw_logging.update_rag_log("\nLoading RAG from pervious session!\n")
 
-        with open(path, 'r') as openfile:
+        with open(path, 'r', encoding="utf-8") as openfile:
             word_database = json.load(openfile)
 
-        with open(path2, 'r') as openfile:
+        with open(path2, 'r', encoding="utf-8") as openfile:
             histories_word_id_database = json.load(openfile)
 
-        with open(path3, 'r') as openfile:
+        with open(path3, 'r', encoding="utf-8") as openfile:
             history_database = json.load(openfile)
 
         # Flag this as done
