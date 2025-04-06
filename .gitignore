@@ -6,8 +6,8 @@ config.json
 
 # --- Логи и временные файлы ---
 log.txt
-livelog.json
-livelogbackup.bak
+LiveLog.json
+LiveLogBackup.bak
 token.txt
 
 # --- Python cache ---
