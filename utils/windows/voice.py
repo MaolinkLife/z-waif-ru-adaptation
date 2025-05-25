@@ -3,6 +3,7 @@ import os
 import asyncio
 import uuid
 import numpy as np
+import re
 
 from pydub import AudioSegment
 from utils.config_manager import get_config_value
@@ -21,6 +22,10 @@ assert os.name == "nt"  # type: ignore
 # VB_CABLE_OUTPUT_ID = 26
 is_speaking = False
 cut_voice = False
+
+# Removes all occurrences of the type *something*
+def remove_emotions_or_actions(text: str) -> str:
+    return re.sub(r"\*(.*?)\*", "", text).strip()
 
 # ——— Main Functions ——— #
 async def generate_tts(text, filename):
@@ -52,8 +57,10 @@ def speak_line(s_message, refuse_pause):
 
     for chunk in chunky_message:
         try:
+            clean_chunk = remove_emotions_or_actions(chunk)
+            
             filename = f"tts_output_{uuid.uuid4()}.mp3"
-            asyncio.run(generate_tts(chunk, filename))
+            asyncio.run(generate_tts(clean_chunk, filename))
             play_voice_output(filename)
             os.remove(filename) # Deletes the file after listening
 
