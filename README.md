@@ -204,7 +204,9 @@
 ## 🤝 8. Contacts / Credits
 
 **Автор оригинала Z-Waif:** [GitHub-ссылка](https://github.com/SugarcaneDefender/z-waif)
-**Этот форк и адаптация:** [Z-Waif-RU-Adaptation](https://github.com/MaolinkLife/z-waif-ru-adaptation/tree/main)  
+
+**Этот форк и адаптация:** [Z-Waif-RU-Adaptation](https://github.com/MaolinkLife/z-waif-ru-adaptation/tree/main)
+
 **Обратная связь:**  
 Пишите в Telegram с пометкой **Z-Waif** — @MaolinkLife или на почту maolink686@gmail.com
 
