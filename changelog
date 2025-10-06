@@ -1,0 +1,80 @@
+version: 0.1
+- Migrated TTS module from z-waif
+- Reworked and styled chat interface (action icons, message input, send/reroll/stop buttons)
+- Added visual debug log with expandable details
+- Implemented basic UI settings with partial + global config sync
+- Connected audio module to backend
+- Created reusable low-level utilities
+- Added LLM initiative engine and preload script
+- Introduced preset editor for temperature settings (UI accessible)
+- Integrated API router logging & auditing
+- Added extensible SQLite database with message history support
+- Implemented system device info retrieval (microphone, speakers, etc.)
+- Introduced speech-to-text (STT) service
+- Migrated utility features from z-waif
+- Added memory search behavior
+- Improved interaction with voice input
+
+version: 0.2
+- Backend
+  - Broke out reusable config/constants modules (rules, prompts, paths, indicators, errors, visual, etc.) and updated initialization to preload them.
+  - Extracted the vision stack into `backend/modules/vision` with dedicated service/analyzer/worker, refreshed moral & cognitive analyzers and initialization hooks.
+  - Introduced `backend/modules/voice` with an async VAD listener, configurable wake words, REST controls (`/api/voice/mode/*`) and safe stubs in `voice_service`.
+  - Persisted LLM reasoning in a new `reasoning` table; FastAPI history responses now merge `<think>…</think>` back into message content, and deletions cascade to reasoning rows.
+  - Adjusted instructor/API pipeline: vision context is appended via `[CONTEXT:VISUAL]` plus explicit `[INSTRUCTION]` cues so models reliably use screen data.
+  - Updated lorebook/RAG services, config service, database helpers, and run loop wiring to match the new module layout.
+  - Refreshed backend requirements (added `webrtcvad`, vision OCR/YOLO deps), committed `requirements.lock`, and shipped a CUDA 12.1 torch manifest.
+
+- Frontend
+  - Introduced a reusable `message-renderer` module (markdown pipes, text/code/thinking blocks) and rewired chat UI to use it.
+  - Restyled chat/history components, lorebook modals, websocket service, and mocks to support thinking blocks and richer formatting.
+  - Added project-level `package.json`/`package-lock.json`, bundled `marked` + typings, and updated build tooling/run script to start both frontend and backend.
+
+- Voice & Logging
+  - Added detailed VAD logging (trigger hits/misses, self-trigger detection), trigger-word configuration via config, and ensured async scheduling works from PortAudio callbacks.
+  - Created REST endpoints to start/stop/status VoiceMode, wired WebSocket stubs, and ensured STT segments flow through the decision layer only when triggers fire.
+
+- UX polish
+  - Redesigned the thinking block with LIM palette, accordion-style expand/collapse, and auto-collapse after streaming.
+  - Ensured reasoning removal on history deletion and tightened audit logs around VAD, visual context, and API generation flows.
+
+version: 0.3
+- Config & Backend
+  - Moved the default config into constants/default_config.py, expanded it with system/core sections, voice module settings, STT defaults, and snake_case audio/vision keys.
+  - Config service now logs recursive updates, exposes set_config_value, validates user_id, and config routes can read/write system prompts while history fetch supports offsets.
+- Voice & Conversation
+  - Introduced a shared voice_state controller and wired it through VAD, streaming, and TTS so listening/waiting/speaking stages stay in sync.
+  - Added ElevenLabs TTS integration with per-module settings, sanitized streamed speech (# removal, emoji stripping), and skipped synthesis when voice is disabled.
+  - VAD listener now deduplicates transcripts, honours the new trigger bypass flag, normalizes config keys, and guards processing with async locks to block self-trigger loops.
+- Vision
+  - Added an Apple FastVLM provider and structured provider configs, including capture metadata in summaries and optional frame dumps controlled via config.
+  - Capture worker now supports monitor/window modes, clamps invalid monitor indices, and reports when the active window falls outside the capture region.
+- Frontend & Settings
+  - Refactored config mappers into domain utilities aligned with the backend schema and renamed the API client method to updateConfig$.
+  - Added Core/System settings views (system prompt editor, theme/language switches, cognitive analyzer controls) and new ConfigService helpers for system endpoints.
+  - Theme service now persists the selected theme and initializes stored preferences.
+- UI & Components
+  - Introduced notification and skeleton shared components plus an emoji picker with a data generation script and bundled emoji dataset.
+  - Refreshed chat/settings/layout styles and tabs to surface the new settings groups and debug affordances.
+
+
+
+version: 0.4
+- Backend & LLM orchestration
+  - Introduced modular analyzer and generative packages with provider managers that fail over between OpenRouter and Ollama, plus shared Ollama client helpers for text and vision chats.
+  - Rewired generation streaming and synchronous paths through the new providers, centralizing error handling and audit logging around the fallback chain.
+- Memory & Storage
+  - Added a MemoryModule that can collect recent/session context via embeddings, integrate lorebook lookups, and report retrieval metadata.
+  - Implemented a storage service + /api/media route to persist message attachments on disk, auto-upgrade the storage schema, and expose safe downloads.
+- Config & API surface
+  - Expanded config models, DTOs, and routes to cover analyzer, generator, memory, and media settings; refreshed mappers on both backend and frontend to keep camelCase ↔ snake_case conversions in sync.
+  - Updated vector/service helpers and new storage endpoints to cooperate with the modular services.
+- Voice & TTS
+  - Added a gTTS provider with automatic pyttsx3 fallback, expanded audit logging, and folded it into the provider sequence so fallback order is ElevenLabs → gTTS → offline.
+  - Reworked the TTS stop pipeline to raise the interrupt flag, clear the playback queue, and leave the worker thread ready for future jobs, fixing cases where new chunks were still spoken after Stop.
+- Decision & diagnostics
+  - DecisionLayer now delegates to the shared TTS service, emits richer analyzer/vision logs, and keeps the troubleshooting prints inline with the new modules.
+- Frontend
+  - Added analyzer settings modal, analyzer/memory config mappers, and expanded settings UI to surface provider selection, fallbacks, and new API fields.
+  - Synced chat/settings components with the backend schema so media, analyzer, and memory options stay editable from the UI.
+

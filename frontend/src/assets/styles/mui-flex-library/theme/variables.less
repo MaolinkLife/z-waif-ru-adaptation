@@ -1,0 +1,202 @@
+@font-fallback: -apple-system, "BlinkMacSystemFont", system-ui, "Roboto",
+    "Segoe UI", "Helvetica Neue", sans-serif;
+
+:root {
+    @mui-color-primary: #eee;
+    @mui-color-primary-hovered: #eee;
+    @mui-color-primary-pressed: #eee;
+    @mui-color-primary-disabled: #eee;
+
+    // --mui-heading-font: "Manrope", @font-fallback;
+    // --mui-text-font: "Manrope", @font-fallback;
+    --mui-heading-font: "Roboto Medium", @font-fallback;
+    --mui-text-font: "Roboto Regular", @font-fallback;
+    //
+    --mui-radius: 10px;
+    --mui-radius-xl: 10px;
+    --mui-disabled-opacity: 0.56;
+    --mui-autofill: #fff5c0;
+    // Base colors
+    // --mui-base-01: #fff; // background and icons on inverted background
+    --mui-base-01: #fff; // background and icons on inverted background
+    --mui-base-02: #f6f6f6; // secondary background, marker icons background
+    --mui-base-03: #ededed; // basic border
+    --mui-base-04: #d7d7d7; // hovered borders
+    --mui-base-05: #b0b0b0; // interface icons
+    --mui-base-06: #959595; // hovered interface icons
+    --mui-base-07: #808080; // inverted background
+    --mui-base-08: #333; // dark interface icons
+    --mui-base-09: #000; // icons on inverted background
+    // --mui-primary: #526ed3; // primary buttons, background
+    // --mui-primary-hover: #6c86e2; // primary buttons hover
+    // --mui-primary-active: #314692; // primary buttons hover
+    --mui-primary: darken(#f6d265, 6%); // primary buttons, background
+    --mui-primary-hover: #f6d265; // primary buttons hover
+    --mui-primary-active: darken(#f6d265, 12%); // primary buttons hover
+    --mui-primary-text: #fff; // text on primary background
+    --mui-secondary: #ebefff; // inputs and secondary buttons
+    --mui-secondary-hover: #dfe3f3; // inputs and secondary buttons hover
+    --mui-secondary-active: #d8ddf2; // inputs and secondary buttons pressed
+    --mui-accent: #ff8078; // fill and outline of accent elements
+    --mui-accent-hover: #ff9a94; // accent elements hover
+    --mui-accent-active: #e7716a; // accent elements pressed
+    --mui-accent-text: #fff; // text on accent background
+    --mui-selection: rgba(112, 182, 246, 0.12); // selected text background
+    --mui-focus: rgba(51, 51, 51, 0.64); // focus ring color
+    --mui-clear: rgba(0, 0, 0, 0.08); // translucent dark fill
+    --mui-clear-disabled: rgba(0, 0, 0, 0.04); // translucent dark fill disabled
+    --mui-clear-hover: rgba(0, 0, 0, 0.16); // translucent dark fill hover
+    --mui-clear-active: rgba(0, 0, 0, 0.2); // translucent dark fill pressed
+    --mui-clear-inverse: rgba(255, 255, 255, 0.16); // translucent light fill
+    --mui-clear-inverse-hover: rgba(
+        255,
+        255,
+        255,
+        0.24
+    ); // translucent light fill hover
+    --mui-clear-inverse-active: rgba(
+        255,
+        255,
+        255,
+        0.4
+    ); // translucent light fill pressed
+    // Statuses
+    --mui-error-fill: rgba(
+        244,
+        87,
+        37,
+        1
+    ); // icons and decorative elements with error status
+    --mui-error-bg: rgba(244, 87, 37, 0.12); // translucent error background
+    --mui-error-bg-hover: rgba(
+        244,
+        87,
+        37,
+        0.24
+    ); // translucent hover error background
+    --mui-success-fill: rgba(
+        74,
+        201,
+        155,
+        1
+    ); // icon and decorative elements with success status
+    --mui-success-bg: rgba(
+        74,
+        201,
+        155,
+        0.12
+    ); // translucent success background
+    --mui-success-bg-hover: rgba(
+        74,
+        201,
+        155,
+        0.24
+    ); // translucent success hover
+    --mui-warning-fill: rgba(
+        255,
+        199,
+        0,
+        1
+    ); // icon and decorative elements with warning status
+    --mui-warning-bg: rgba(255, 199, 0, 0.12); // translucent warning background
+    --mui-warning-bg-hover: rgba(
+        255,
+        199,
+        0,
+        0.24
+    ); // translucent warning background
+    --mui-info-fill: rgba(
+        112,
+        182,
+        246,
+        1
+    ); // icon and decorative elements with info status
+    --mui-info-bg: rgba(112, 182, 246, 0.12); // translucent info background
+    --mui-info-bg-hover: rgba(
+        112,
+        182,
+        246,
+        0.24
+    ); // translucent info background
+    --mui-neutral-fill: rgb(
+        121,
+        129,
+        140
+    ); // icon and decorative elements with neutral status
+    --mui-neutral-bg: rgba(121, 129, 140, 0.12); // translucent info background
+    --mui-neutral-bg-hover: rgba(
+        121,
+        129,
+        140,
+        0.24
+    ); // translucent info background
+    // Text
+    // --mui-text-01: rgba(27, 31, 59, 1);
+    --mui-text-01: rgba(255, 255, 255, 1);
+    // --mui-text-02: rgba(27, 31, 59, 0.65);
+    --mui-text-02: rgba(255, 255, 255, 0.72);
+    // --mui-text-03: rgba(27, 31, 59, 0.4);
+    --mui-text-03: rgba(255, 255, 255, 0.6);
+    --mui-link: #526ed3;
+    --mui-link-hover: #6c86e2;
+    --mui-positive: #3aa981;
+    --mui-positive-hover: #7ac5aa;
+    --mui-negative: #dd4c1e;
+    --mui-negative-hover: #e38163;
+    // Modifiers for dark background
+    --mui-error-fill-night: rgba(255, 140, 103, 1);
+    --mui-error-bg-night: rgba(244, 87, 37, 0.32);
+    --mui-error-bg-night-hover: rgba(244, 87, 37, 0.4);
+    --mui-success-fill-night: rgb(74, 201, 155);
+    --mui-success-bg-night: rgba(74, 201, 155, 0.32);
+    --mui-success-bg-night-hover: rgba(74, 201, 155, 0.4);
+    --mui-warning-fill-night: rgb(255, 199, 0);
+    --mui-warning-bg-night: rgba(255, 199, 0, 0.32);
+    --mui-warning-bg-night-hover: rgba(255, 199, 0, 0.4);
+    --mui-info-fill-night: rgb(112, 182, 246);
+    --mui-info-bg-night: rgba(112, 182, 246, 0.32);
+    --mui-info-bg-night-hover: rgba(112, 182, 246, 0.4);
+    --mui-neutral-fill-night: rgb(149, 155, 164);
+    --mui-neutral-bg-night: rgb(149, 155, 164, 0.32);
+    --mui-neutral-bg-night-hover: rgb(149, 155, 164, 0.48);
+    //
+    --mui-text-01-night: rgba(255, 255, 255, 1);
+    --mui-text-02-night: rgba(255, 255, 255, 0.72);
+    --mui-text-03-night: rgba(255, 255, 255, 0.6);
+    --mui-link-night: #6788ff;
+    --mui-link-night-hover: #526ed3;
+    --mui-positive-night: #44c596;
+    --mui-positive-night-hover: #3aa981;
+    --mui-negative-night: #ff8c67;
+    --mui-negative-night-hover: #bb593a;
+    //
+    --mui-support-01: #a8cef1;
+    --mui-support-02: #3682db;
+    --mui-support-03: #8dda71;
+    --mui-support-04: #34b41f;
+    --mui-support-05: #e29398;
+    --mui-support-06: #b8474e;
+    --mui-support-07: #fcc068;
+    --mui-support-08: #ff8a00;
+    --mui-support-09: #dab3f9;
+    --mui-support-10: #7b439e;
+    --mui-support-11: #fee797;
+    --mui-support-12: #fcbb14;
+    --mui-support-13: #ea97c4;
+    --mui-support-14: #bd65a4;
+    --mui-support-15: #7fd7cc;
+    --mui-support-16: #2fad96;
+    --mui-support-17: #d4aca2;
+    --mui-support-18: #9d6f64;
+    --mui-support-19: #d2e9a2;
+    --mui-support-20: #aadc42;
+    --mui-support-21: #a0c5df;
+    --mui-support-22: #3c7ba8;
+
+    @media all and (max-width: 599px) {
+        --mui-heading-font: @font-fallback;
+        --mui-text-font: @font-fallback;
+    }
+
+    --thunderstorm-primary: #f5a302;
+}

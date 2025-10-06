@@ -1,0 +1,25 @@
+@import "../../../../assets/styles/lim-ui/colors.less";
+
+.icons-toolbar {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+
+    .btn-icon {
+        background: none;
+        border: none;
+        padding: 4px;
+        cursor: pointer;
+
+        svg {
+            width: 20px;
+            height: 20px;
+            stroke: @color-text;
+            transition: stroke 0.3s ease;
+
+            &:hover {
+                stroke: @color-accent;
+            }
+        }
+    }
+}

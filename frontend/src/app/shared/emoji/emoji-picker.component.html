@@ -1,0 +1,39 @@
+<div class="emoji-dropdown" [ngStyle]="panelStyle" [ngClass]="containerClasses">
+    <div class="emoji-search">
+        <input
+            type="text"
+            class="emoji-search-input"
+            placeholder="Поиск эмодзи..."
+            [value]="searchTerm"
+            #emojiSearch
+            (input)="onSearch(emojiSearch.value)"
+        />
+    </div>
+
+    <div class="emoji-categories">
+        <button
+            type="button"
+            *ngFor="let category of categories"
+            class="category-btn"
+            [class.active]="activeCategoryId === category.id && !searchTerm"
+            (click)="selectCategory(category.id)"
+            [title]="category.label"
+        >
+            {{ category.icon }}
+        </button>
+    </div>
+
+    <div class="emoji-picker" tabindex="-1">
+        <div class="emoji-grid">
+            <button
+                type="button"
+                class="emoji-item"
+                *ngFor="let emoji of filteredEmojis"
+                (click)="selectEmoji(emoji.symbol)"
+                [title]="emoji.name"
+            >
+                {{ emoji.symbol }}
+            </button>
+        </div>
+    </div>
+</div>

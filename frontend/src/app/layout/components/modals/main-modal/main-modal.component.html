@@ -1,0 +1,33 @@
+<!-- main-modal.component.html -->
+<div class="content">
+    <div class="sidebar">
+        <div class="sidebar-title">Settings</div>
+        <div class="sidebar-content">
+            <button
+                *ngFor="let tab of tabs"
+                [class.active]="activeView === tab.key"
+                (click)="selectView(tab.key)"
+            >
+                {{ tab.label }}
+            </button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <app-lorebook *ngIf="activeView === 'lorebook'"></app-lorebook>
+        <app-voice-settings *ngIf="activeView === 'voice'"></app-voice-settings>
+        <app-audio-settings *ngIf="activeView === 'audio'"></app-audio-settings>
+        <app-vision-settings
+            *ngIf="activeView === 'vision'"
+        ></app-vision-settings>
+        <app-rag-settings *ngIf="activeView === 'rag'"></app-rag-settings>
+        <app-analyzer-settings *ngIf="activeView === 'analyzer'"></app-analyzer-settings>
+        <app-generation-settings
+            *ngIf="activeView === 'generate'"
+        ></app-generation-settings>
+        <app-core-settings *ngIf="activeView === 'core'"></app-core-settings>
+        <app-system-settings
+            *ngIf="activeView === 'system'"
+        ></app-system-settings>
+    </div>
+</div>

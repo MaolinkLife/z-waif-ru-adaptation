@@ -1,0 +1,84 @@
+<div class="core-settings-wrapper">
+    <h2>🧠 {{ "coreSettings.title" | translate }}</h2>
+
+    <div class="core-modules">
+        <div class="module-card" (click)="openDlModal()">
+            <h3>{{ "coreSettings.dlTitle" | translate }}</h3>
+            <p>{{ "coreSettings.dlDescription" | translate }}</p>
+            <div class="module-icon">🧠</div>
+        </div>
+
+        <div class="module-card">
+            <h3>{{ "coreSettings.instructorTitle" | translate }}</h3>
+            <p>{{ "coreSettings.instructorDescription" | translate }}</p>
+            <div class="module-icon">🧠</div>
+        </div>
+    </div>
+
+    <div class="modal" *ngIf="showDlModal" (click)="closeDlModal()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+                <h3>{{ "coreSettings.dlModalTitle" | translate }}</h3>
+                <button class="close-btn" (click)="closeDlModal()">
+                    &times;
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <form [formGroup]="dlForm" class="settings-form">
+                    <div class="section">
+                        <h4>
+                            {{ "coreSettings.availableModules" | translate }}
+                        </h4>
+                        <div class="form-group">
+                            <label class="checkbox">
+                                <input type="checkbox" />
+                                {{ "coreSettings.logicReasoning" | translate }}
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox">
+                                <input type="checkbox" />
+                                {{ "coreSettings.contextAnalysis" | translate }}
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox">
+                                <input type="checkbox" />
+                                {{ "coreSettings.decisionTrees" | translate }}
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox">
+                                <input type="checkbox" />
+                                {{
+                                    "coreSettings.priorityProcessing"
+                                        | translate
+                                }}
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox">
+                                <input type="checkbox" />
+                                {{ "coreSettings.ruleEngine" | translate }}
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="button-row">
+                        <button
+                            type="button"
+                            (click)="closeDlModal()"
+                            class="btn-secondary"
+                        >
+                            {{ "general.cancel" | translate }}
+                        </button>
+                        <button type="button" class="btn-primary">
+                            {{ "coreSettings.saveDlSettings" | translate }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

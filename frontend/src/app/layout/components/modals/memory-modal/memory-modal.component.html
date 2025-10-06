@@ -1,0 +1,20 @@
+<ng-container *ngIf="entries$ | async as entries">
+    <div *ngFor="let entry of entries" class="entry-block">
+        <h3>
+            {{ entry.content }}
+        </h3>
+        <textarea [(ngModel)]="entry.content" class="entry-text"></textarea>
+    </div>
+    <div class="modal-footer">
+        <div>
+            <button class="accent-btn" (click)="save()">Сохранить</button>
+            <button class="accent-btn" (click)="save()">
+                Добавить воспоминание
+            </button>
+        </div>
+
+        <button class="close-btn" (click)="modalRef.closeModal()">
+            ❌ Закрыть
+        </button>
+    </div>
+</ng-container>

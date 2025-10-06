@@ -1,0 +1,42 @@
+# Core backend dependencies
+fastapi>=0.100.0
+uvicorn[standard]>=0.20.0
+ollama
+python-dotenv
+requests
+pyyaml
+SQLAlchemy>=1.4
+numpy
+sounddevice
+pydub
+edge-tts
+gTTS>=2.5.0
+emoji>=2.0.0
+faster-whisper
+python-dateutil
+sentence-transformers
+openai
+pyttsx3
+timm
+
+# Async/HTTP
+aiohttp
+
+# Vector DB
+chromadb
+
+# Vision stack (optional but used when vision.enabled=true)
+opencv-python
+mss
+pytesseract
+ultralytics
+psutil
+pywin32
+
+# VAD
+webrtcvad
+
+# NOTE: PyTorch is required for YOLO and (optionally) Silero VAD.
+# Do NOT pin torch here to keep installs platform-specific.
+# For NVIDIA CUDA 12.1, install via the dedicated requirements file:
+#   pip install -r backend/requirements.torch-cu121.txt

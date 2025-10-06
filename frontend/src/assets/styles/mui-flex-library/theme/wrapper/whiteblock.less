@@ -1,0 +1,37 @@
+mui-wrapper[data-appearance='whiteblock'],
+mui-wrapper[data-appearance='whiteblock-active'] {
+    background: var(--mui-base-01);
+    color: var(--mui-text-01);
+
+    &:after {
+        color: var(--mui-base-03);
+    }
+
+    &[data-state='hovered'],
+    &[data-state='pressed'] {
+        background: var(--mui-base-02);
+
+        &:after {
+            color: var(--mui-base-04);
+        }
+    }
+
+    &[data-state='disabled'] {
+        opacity: var(--mui-disabled-opacity);
+    }
+}
+
+mui-wrapper[data-appearance='whiteblock-active'] {
+    &:after {
+        color: var(--mui-primary);
+        border-width: 2px;
+    }
+
+    &[data-state='hovered']:after {
+        color: var(--mui-primary-hover);
+    }
+
+    &[data-state='pressed']:after {
+        color: var(--mui-primary-active);
+    }
+}

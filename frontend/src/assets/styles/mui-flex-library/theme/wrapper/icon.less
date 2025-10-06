@@ -1,0 +1,41 @@
+// TODO: Variables names should not rely on textfield
+mui-wrapper[data-appearance='icon'] {
+    background: transparent;
+    color: var(--mui-base-06);
+
+    &[data-state='hovered'] {
+        color: var(--mui-base-07);
+    }
+
+    &[data-state='pressed'] {
+        color: var(--mui-base-08);
+    }
+
+    &[data-state='disabled'] {
+        opacity: var(--mui-disabled-opacity);
+    }
+
+    &[data-mode='onDark'] {
+        color: var(--mui-base-01);
+        opacity: var(--mui-disabled-opacity);
+
+        &[data-state='hovered'],
+        &[data-state='pressed'] {
+            opacity: 1;
+        }
+
+        &._focused:after {
+            color: var(--mui-base-01);
+        }
+    }
+
+    &[data-mode='onLight'] {
+        color: var(--mui-text-01);
+        opacity: var(--mui-disabled-opacity);
+
+        &[data-state='hovered'],
+        &[data-state='pressed'] {
+            opacity: 1;
+        }
+    }
+}

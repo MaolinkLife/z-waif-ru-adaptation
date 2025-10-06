@@ -1,0 +1,46 @@
+@font-face {
+    font-family: Pragmatica EL;
+    /* Имя шрифта */
+    src: url(PragmaticaWeb-ExtraLight.ttf);
+    /* Путь к файлу со шрифтом */
+
+}
+
+@font-face {
+    font-family: Pragmatica L;
+    /* Имя шрифта */
+    src: url(PragmaticaWeb-Light.ttf);
+    /* Путь к файлу со шрифтом */
+
+}
+
+@font-face {
+    font-family: Pragmatica Book;
+    /* Имя шрифта */
+    src: url(PragmaticaWeb-Book.ttf);
+    /* Путь к файлу со шрифтом */
+
+}
+
+@font-face {
+    font-family: Pragmatica M;
+    /* Имя шрифта */
+    src: url(PragmaticaWeb-Medium.ttf);
+    /* Путь к файлу со шрифтом */
+
+}
+
+@font-face {
+    font-family: Pragmatica Bold;
+    /* Имя шрифта */
+    src: url(PragmaticaWeb-Bold.ttf);
+    /* Путь к файлу со шрифтом */
+
+}
+
+@font-face {
+    font-family: Charter;
+    /* Имя шрифта */
+    src: url(CharterITC.ttf);
+    /* Путь к файлу со шрифтом */
+}

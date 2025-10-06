@@ -1,0 +1,445 @@
+<ng-container *ngIf="isLoading$ | async; else formContent">
+    <div class="settings-wrapper">
+        <div class="settings-form">
+            <h2><app-skeleton height="2rem" width="150px"></app-skeleton></h2>
+
+            <div class="form-group">
+                <label
+                    ><app-skeleton height="1rem" width="120px"></app-skeleton
+                ></label>
+                <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+            </div>
+
+            <div class="form-group">
+                <label
+                    ><app-skeleton height="1rem" width="120px"></app-skeleton
+                ></label>
+                <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+            </div>
+
+            <div class="form-group">
+                <label
+                    ><app-skeleton height="1rem" width="120px"></app-skeleton
+                ></label>
+                <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+            </div>
+
+            <div class="form-group token-limit-block">
+                <label
+                    ><app-skeleton height="1rem" width="120px"></app-skeleton
+                ></label>
+                <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+            </div>
+
+            <div class="form-group">
+                <label
+                    ><app-skeleton height="1rem" width="120px"></app-skeleton
+                ></label>
+                <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+            </div>
+
+            <div class="form-group">
+                <label
+                    ><app-skeleton height="1rem" width="120px"></app-skeleton
+                ></label>
+                <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+            </div>
+
+            <div class="button-row">
+                <app-skeleton height="2.5rem" width="150px"></app-skeleton>
+            </div>
+        </div>
+    </div>
+
+    <div class="settings-wrapper">
+        <h2><app-skeleton height="2rem" width="150px"></app-skeleton></h2>
+
+        <div class="form-group">
+            <label
+                ><app-skeleton height="1rem" width="120px"></app-skeleton
+            ></label>
+            <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+        </div>
+
+        <div class="form-group">
+            <label
+                ><app-skeleton height="1rem" width="120px"></app-skeleton
+            ></label>
+            <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+        </div>
+
+        <div class="form-group">
+            <label
+                ><app-skeleton height="1rem" width="120px"></app-skeleton
+            ></label>
+            <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+        </div>
+
+        <div class="form-group">
+            <label
+                ><app-skeleton height="1rem" width="120px"></app-skeleton
+            ></label>
+            <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+        </div>
+
+        <div class="form-group">
+            <label
+                ><app-skeleton height="1rem" width="120px"></app-skeleton
+            ></label>
+            <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+        </div>
+
+        <div class="form-group">
+            <label
+                ><app-skeleton height="1rem" width="120px"></app-skeleton
+            ></label>
+            <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+        </div>
+
+        <div class="form-group">
+            <label
+                ><app-skeleton height="1rem" width="120px"></app-skeleton
+            ></label>
+            <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+        </div>
+
+        <div class="form-group">
+            <label
+                ><app-skeleton height="1rem" width="120px"></app-skeleton
+            ></label>
+            <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+        </div>
+
+        <div class="form-group">
+            <label
+                ><app-skeleton height="1rem" width="120px"></app-skeleton
+            ></label>
+            <app-skeleton height="6rem" width="100%"></app-skeleton>
+        </div>
+
+        <div class="button-row">
+            <app-skeleton height="2.5rem" width="150px"></app-skeleton>
+        </div>
+    </div>
+</ng-container>
+
+<ng-template #formContent>
+    <div class="settings-wrapper">
+        <form
+            [formGroup]="generationForm"
+            (ngSubmit)="saveChanges()"
+            class="settings-form"
+        >
+            <h2>⚡ {{ "settings.apiSettings" | translate }}</h2>
+
+            <div class="form-group">
+                <label for="apiType">{{
+                    "settings.apiType" | translate
+                }}</label>
+                <select id="apiType" formControlName="apiType">
+                    <option *ngFor="let option of apiTypeOptions" [value]="option">
+                        {{ option }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="activeProvider">{{
+                    "settings.activeProvider" | translate
+                }}</label>
+                <select id="activeProvider" formControlName="activeProvider">
+                    <option *ngFor="let provider of providerKeys" [value]="provider">
+                        {{ provider | titlecase }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="fallbackOrder">{{
+                    "settings.fallbackOrder" | translate
+                }}</label>
+                <input
+                    id="fallbackOrder"
+                    type="text"
+                    formControlName="fallbackOrder"
+                    placeholder="provider1, provider2"
+                />
+            </div>
+
+            <div class="form-group">
+                <label for="visualModel">{{
+                    "settings.visualModel" | translate
+                }}</label>
+                <input
+                    id="visualModel"
+                    type="text"
+                    formControlName="visualModel"
+                />
+            </div>
+
+            <div class="form-group token-limit-block">
+                <label for="tokenLimit">{{
+                    "settings.tokenLimit" | translate
+                }}</label>
+                <input
+                    #tokenInput
+                    id="tokenLimit"
+                    type="number"
+                    min="512"
+                    max="131072"
+                    step="256"
+                    formControlName="tokenLimit"
+                />
+                <input
+                    #tokenSlider
+                    type="range"
+                    min="512"
+                    max="131072"
+                    step="256"
+                    formControlName="tokenLimit"
+                />
+                <div class="token-range-labels">
+                    <span>512</span>
+                    <span>128k</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="messagePairLimit">{{
+                    "settings.messagePairLimit" | translate
+                }}</label>
+                <input
+                    id="messagePairLimit"
+                    type="number"
+                    formControlName="messagePairLimit"
+                    min="1"
+                    max="50"
+                />
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox">
+                    <input type="checkbox" formControlName="streaming" />
+                    {{ "settings.streaming" | translate }}
+                </label>
+            </div>
+
+            <div class="provider-settings" *ngIf="currentProviderForm as providerForm">
+                <h3>
+                    {{ "settings.providerSettings" | translate }}
+                    — {{ generationForm.get('activeProvider')?.value | titlecase }}
+                </h3>
+
+                <div [formGroup]="providerForm">
+                    <ng-container *ngFor="let field of currentProviderFields">
+                        <div class="form-group" *ngIf="field.key !== 'model'">
+                            <ng-container [ngSwitch]="field.type">
+                                <label *ngSwitchCase="'checkbox'" class="checkbox">
+                                    <input
+                                        type="checkbox"
+                                        [formControlName]="field.key"
+                                        [id]="'provider-' + field.key"
+                                    />
+                                    {{ formatFieldLabel(field.key) }}
+                                </label>
+                                <ng-container *ngSwitchDefault>
+                                    <label [for]="'provider-' + field.key">
+                                        {{ formatFieldLabel(field.key) }}
+                                    </label>
+                                    <input
+                                        [id]="'provider-' + field.key"
+                                        [type]="field.type === 'number' ? 'number' : 'text'"
+                                        [formControlName]="field.key"
+                                    />
+                                </ng-container>
+                            </ng-container>
+                        </div>
+                    </ng-container>
+
+                    <div class="form-group" *ngIf="providerForm.get('model') as modelControl">
+                        <label for="provider-model">{{
+                            "settings.textModel" | translate
+                        }}</label>
+
+                        <ng-container *ngIf="generationForm.get('activeProvider')?.value === 'ollama'; else textModelInput">
+                            <div
+                                class="custom-select"
+                                (click)="toggleDropdown()"
+                                [ngClass]="{ open: dropdownOpen }"
+                            >
+                                <div class="selected">
+                                    {{ modelControl.value || ("settings.selectModel" | translate) }}
+                                </div>
+                                <ul class="options" *ngIf="dropdownOpen">
+                                    <li
+                                        *ngFor="let model of availableModels"
+                                        (click)="selectModel(model); $event.stopPropagation()"
+                                        [class.active]="model === selectedModel"
+                                    >
+                                        {{ model.split(":")[0] }} ({{ model.split(":")[1] || "latest" }})
+                                    </li>
+                                </ul>
+                            </div>
+                        </ng-container>
+
+                        <ng-template #textModelInput>
+                            <input id="provider-model" type="text" formControlName="model" />
+                        </ng-template>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-row">
+                <button type="submit" [disabled]="!hasChanges()">
+                    💾 {{ "general.save" | translate }}
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="settings-wrapper">
+        <h2>{{ "settings.generationPresets" | translate }}</h2>
+
+        <div class="form-group">
+            <label for="presetSelect">{{
+                "settings.selectPreset" | translate
+            }}</label>
+            <select
+                id="presetSelect"
+                [value]="selectedPresetName"
+                (change)="onPresetChange($event)"
+            >
+                <option *ngFor="let p of presets" [value]="p.name">
+                    {{ p.name }}
+                </option>
+            </select>
+        </div>
+
+        <form
+            [formGroup]="generationSettingsForm"
+            (ngSubmit)="saveOrUpdatePreset()"
+        >
+            <div class="form-group">
+                <label>{{ "settings.presetName" | translate }}</label>
+                <input type="text" formControlName="name" />
+            </div>
+
+            <div class="form-group">
+                <label>{{ "settings.description" | translate }}</label>
+                <input type="text" formControlName="description" />
+            </div>
+
+            <div class="form-group">
+                <label>
+                    {{ "settings.temperature" | translate }}:
+                    <span>{{
+                        generationSettingsForm.get("temperature")?.value
+                            | number : "1.2-2"
+                    }}</span>
+                </label>
+                <input
+                    type="range"
+                    min="0.1"
+                    max="2.0"
+                    step="0.01"
+                    formControlName="temperature"
+                />
+            </div>
+
+            <div class="form-group">
+                <label>
+                    {{ "settings.topP" | translate }}:
+                    <span>{{
+                        generationSettingsForm.get("topP")?.value
+                            | number : "1.2-2"
+                    }}</span>
+                </label>
+                <input
+                    type="range"
+                    min="0.1"
+                    max="1.0"
+                    step="0.01"
+                    formControlName="topP"
+                />
+            </div>
+
+            <div class="form-group">
+                <label>
+                    {{ "settings.topK" | translate }}:
+                    <span>{{ generationSettingsForm.get("topK")?.value }}</span>
+                </label>
+                <input
+                    type="range"
+                    min="1"
+                    max="100"
+                    step="1"
+                    formControlName="topK"
+                />
+            </div>
+
+            <div class="form-group">
+                <label>
+                    {{ "settings.minP" | translate }}:
+                    <span>{{
+                        generationSettingsForm.get("minP")?.value
+                            | number : "1.2-2"
+                    }}</span>
+                </label>
+                <input
+                    type="range"
+                    min="0.0"
+                    max="1.0"
+                    step="0.01"
+                    formControlName="minP"
+                />
+            </div>
+
+            <div class="form-group">
+                <label>
+                    {{ "settings.repeatPenalty" | translate }}:
+                    <span>{{
+                        generationSettingsForm.get("repeatPenalty")?.value
+                            | number : "1.2-2"
+                    }}</span>
+                </label>
+                <input
+                    type="range"
+                    min="0.5"
+                    max="2.0"
+                    step="0.01"
+                    formControlName="repeatPenalty"
+                />
+            </div>
+
+            <div class="form-group">
+                <label>
+                    {{ "settings.maxTokens" | translate }}:
+                    <span>{{
+                        generationSettingsForm.get("numPredict")?.value
+                    }}</span>
+                </label>
+                <input
+                    type="range"
+                    min="64"
+                    max="4096"
+                    step="64"
+                    formControlName="numPredict"
+                />
+            </div>
+
+            <div class="form-group">
+                <label>{{ "settings.stopTokens" | translate }}</label>
+                <textarea
+                    formControlName="stop"
+                    [placeholder]="'settings.stopTokensPlaceholder' | translate"
+                ></textarea>
+            </div>
+
+            <div class="button-row">
+                <button type="submit">
+                    💾 {{ "settings.savePreset" | translate }}
+                </button>
+            </div>
+        </form>
+    </div>
+</ng-template>

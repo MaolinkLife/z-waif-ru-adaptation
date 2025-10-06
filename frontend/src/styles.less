@@ -1,0 +1,116 @@
+@import "./assets/styles/lim-ui/colors.less";
+// @import "./assets/styles/variables.less";
+
+:root {
+    --color-bg: #0c0c0d;
+    --color-surface: #1a1a1d;
+    --color-border: #2e2e32;
+    --color-text: #bfbfbf;
+    --color-text-active: #ffffff;
+    --color-accent: #ffd54f;
+    --color-accent-dark: #e6b800;
+
+    --btn-bg: #202020;
+    --btn-fg: #ffffff;
+}
+
+html,
+body {
+    height: 100%;
+}
+body {
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: "JetBrains Mono", monospace;
+}
+// =====================================================
+// CSS Custom Properties auto-generated from LESS palette
+// =====================================================
+
+:root,
+body.theme-dark {
+    --color-bg: @color-bg;
+    --color-surface: @color-surface;
+    --color-border: @color-border;
+
+    --color-text: @color-text;
+    --color-text-active: @color-text-active;
+
+    --color-accent: @color-accent;
+    --color-accent-dark: @color-accent-dark;
+
+    --color-danger: @color-danger;
+    --color-success: @color-success;
+    --color-emotion: @color-emotion;
+    --color-focus: @color-focus;
+
+    --radius: @radius;
+    --font-family: @font-family;
+    --shadow-soft: @shadow-soft;
+
+    --color-info: @color-info;
+    --color-info-dark: @color-info-dark;
+}
+
+// 🎨 LIGHT THEME overrides
+body.theme-light {
+    --color-bg: #ffffff;
+    --color-surface: #f5f6f8;
+    --color-border: #dcdcdc;
+
+    --color-text: #333333;
+    --color-text-active: #000000;
+
+    --color-accent: #1976d2;
+    --color-accent-dark: #1565c0;
+
+    --color-danger: #d32f2f;
+    --color-success: #2e7d32;
+    --color-emotion: #8e24aa;
+    --color-focus: #90caf9;
+
+    --shadow-soft: 0 0 8px rgba(0, 0, 0, 0.1);
+}
+/* Базовые фон/цвет для всей страницы */
+html,
+body {
+    height: 100%;
+}
+body {
+    background: var(--color-bg);
+    color: var(--color-text);
+}
+
+.btn-transparent {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-family: var(--font-family, "JetBrains Mono", monospace);
+    font-size: 0.9rem;
+    color: var(--color-text);
+    background-color: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius, 6px);
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+
+    svg {
+        stroke: var(--color-text);
+        transition: stroke 0.2s;
+    }
+
+    &:hover {
+        background-color: rgba(255, 255, 255, 0.04);
+        border-color: var(--color-text-active);
+
+        svg {
+            stroke: var(--color-text-active);
+        }
+    }
+
+    &:active {
+        background-color: rgba(255, 255, 255, 0.08);
+    }
+}

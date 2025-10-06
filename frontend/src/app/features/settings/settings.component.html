@@ -1,0 +1,363 @@
+<div class="settings-wrapper">
+    <form
+        [formGroup]="settingsForm"
+        (ngSubmit)="clickUpdateConfig()"
+        class="settings-form"
+    >
+        <h2>⚙️ {{ "settings.general" | translate }}</h2>
+        <div class="form-group">
+            <label for="charName">{{ "settings.charName" | translate }}</label>
+            <input id="charName" type="text" formControlName="charName" />
+        </div>
+
+        <div class="form-group">
+            <label for="userName">{{ "settings.userName" | translate }}</label>
+            <input id="userName" type="text" formControlName="userName" />
+        </div>
+
+        <div class="form-group">
+            <label for="globalLanguage">{{
+                "settings.language" | translate
+            }}</label>
+            <select id="globalLanguage" formControlName="language">
+                <option *ngFor="let lang of languages" [value]="lang.code">
+                    {{ lang.label }}
+                </option>
+            </select>
+        </div>
+
+        <h2>🎤 {{ "settings.voice_setting" | translate }}</h2>
+        <div formGroupName="voice">
+            <div class="form-group">
+                <label for="voiceLanguage">{{
+                    "settings.voice" | translate
+                }}</label>
+                <input
+                    id="voiceLanguage"
+                    type="text"
+                    formControlName="voiceLanguage"
+                />
+            </div>
+
+            <div class="form-group">
+                <label for="language">{{
+                    "settings.voice_language" | translate
+                }}</label>
+                <input id="language" type="text" formControlName="language" />
+            </div>
+
+            <div class="form-group">
+                <label for="outputId">{{
+                    "settings.output_device" | translate
+                }}</label>
+                <select id="outputId" (change)="onAudioOutputChange($event)">
+                    <option
+                        *ngFor="let device of audioOutputs"
+                        [value]="device.id"
+                        [selected]="device.id === selectedAudioOutput?.id"
+                    >
+                        [{{ device.id }}]: {{ device.name }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="windowsOutputId">{{
+                    "settings.windows_output" | translate
+                }}</label>
+                <select
+                    id="windowsOutputId"
+                    (change)="onWindowsOutputChange($event)"
+                >
+                    <option
+                        *ngFor="let device of windowsOutputs"
+                        [value]="device.id"
+                        [selected]="device.id === selectedWindowsOutput?.id"
+                    >
+                        [{{ device.id }}]: {{ device.name }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox">
+                    <input type="checkbox" formControlName="useRvc" />
+                    {{ "settings.use_rvc" | translate }}
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox">
+                    <input type="checkbox" formControlName="enabled" />
+                    {{ "settings.speak_responses" | translate }}
+                </label>
+            </div>
+        </div>
+
+        <h2>🧩 {{ "settings.modules" | translate }}</h2>
+        <div class="checkbox-grid" formGroupName="modules">
+            <label
+                ><input type="checkbox" formControlName="vtube_studio" />
+                {{ "settings.vtube_studio" | translate }}</label
+            >
+            <label
+                ><input type="checkbox" formControlName="whisper" />
+                {{ "settings.whisper" | translate }}</label
+            >
+            <label
+                ><input type="checkbox" formControlName="minecraft" />
+                {{ "settings.minecraft" | translate }}</label
+            >
+            <label
+                ><input type="checkbox" formControlName="gaming" />
+                {{ "settings.gaming" | translate }}</label
+            >
+            <label
+                ><input type="checkbox" formControlName="alarm" /> Alarm</label
+            >
+            <label
+                ><input type="checkbox" formControlName="discord" />
+                {{ "settings.discord" | translate }}</label
+            >
+            <label
+                ><input type="checkbox" formControlName="rag" />
+                {{ "settings.rag" | translate }}</label
+            >
+            <label
+                ><input type="checkbox" formControlName="visual" />
+                {{ "settings.visual" | translate }}</label
+            >
+        </div>
+
+        <h2>🧠 {{ "settings.api" | translate }}</h2>
+        <div formGroupName="api">
+            <div class="form-group">
+                <label for="type">{{ "settings.api_type" | translate }}</label>
+                <input id="type" type="text" formControlName="type" />
+            </div>
+
+            <div class="form-group">
+                <div
+                    class="custom-select"
+                    (click)="toggleDropdown()"
+                    [ngClass]="{ open: dropdownOpen }"
+                >
+                    <div class="selected">
+                        {{ settingsForm.get("api")?.value.model || "" }}
+                    </div>
+                    <ul class="options" *ngIf="dropdownOpen">
+                        <li
+                            *ngFor="let model of availableModels"
+                            (click)="
+                                selectModel(model); $event.stopPropagation()
+                            "
+                            [class.active]="model === selectedModel"
+                        >
+                            {{ model.split(":")[0] }} ({{
+                                model.split(":")[1] || "latest"
+                            }})
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="visualModel">{{
+                    "settings.visual_model" | translate
+                }}</label>
+                <input
+                    id="visualModel"
+                    type="text"
+                    formControlName="visualModel"
+                />
+            </div>
+
+            <div class="form-group token-limit-block">
+                <label for="tokenLimit">{{
+                    "settings.token_limit" | translate
+                }}</label>
+                <input
+                    #tokenInput
+                    id="tokenLimit"
+                    type="number"
+                    min="512"
+                    max="131072"
+                    step="256"
+                    formControlName="tokenLimit"
+                />
+                <input
+                    #tokenSlider
+                    type="range"
+                    min="512"
+                    max="131072"
+                    step="256"
+                    formControlName="tokenLimit"
+                />
+
+                <div class="token-range-labels">
+                    <span>512</span>
+                    <span>128k</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="messagePairLimit">{{
+                    "settings.message_pair_limit" | translate
+                }}</label>
+                <input
+                    id="messagePairLimit"
+                    type="number"
+                    formControlName="messagePairLimit"
+                />
+            </div>
+
+            <label class="checkbox">
+                <input type="checkbox" formControlName="streaming" />
+                {{ "settings.streaming" | translate }}
+            </label>
+        </div>
+
+        <div class="button-row">
+            <button type="submit" [disabled]="!hasChanges()">
+                💾 {{ "general.save" | translate }}
+            </button>
+            <!-- <button class="cancel" type="button">Отмена</button> -->
+        </div>
+    </form>
+</div>
+
+<div class="settings-wrapper">
+    <h2>🎨{{ "settings.presets" | translate }}</h2>
+    <div class="form-group">
+        <label for="presetSelect">{{
+            "settings.select_preset" | translate
+        }}</label>
+        <select
+            id="presetSelect"
+            [(ngModel)]="selectedPresetName"
+            (change)="applyPreset(selectedPresetName)"
+        >
+            <option *ngFor="let p of presets" [value]="p.name">
+                {{ p.name }}
+            </option>
+        </select>
+    </div>
+
+    <form [formGroup]="generationSettingsForm">
+        <div class="form-group">
+            <label>{{ "settings.preset_name" | translate }}</label>
+            <input type="text" formControlName="name" />
+        </div>
+        <div class="form-group">
+            <label>{{ "settings.description" | translate }}</label>
+            <input type="text" formControlName="description" />
+        </div>
+
+        <div class="form-group">
+            <label
+                >Temperature:
+                <span>{{
+                    generationSettingsForm.get("temperature")?.value
+                }}</span></label
+            >
+            <input
+                type="range"
+                min="0.1"
+                max="2.0"
+                step="0.01"
+                formControlName="temperature"
+            />
+        </div>
+
+        <div class="form-group">
+            <label
+                >Top P:
+                <span>{{
+                    generationSettingsForm.get("top_p")?.value
+                }}</span></label
+            >
+            <input
+                type="range"
+                min="0.1"
+                max="1.0"
+                step="0.01"
+                formControlName="top_p"
+            />
+        </div>
+
+        <div class="form-group">
+            <label
+                >Top K:
+                <span>{{
+                    generationSettingsForm.get("top_k")?.value
+                }}</span></label
+            >
+            <input
+                type="range"
+                min="1"
+                max="100"
+                step="1"
+                formControlName="top_k"
+            />
+        </div>
+
+        <div class="form-group">
+            <label
+                >Min P:
+                <span>{{
+                    generationSettingsForm.get("min_p")?.value
+                }}</span></label
+            >
+            <input
+                type="range"
+                min="0.0"
+                max="1.0"
+                step="0.01"
+                formControlName="min_p"
+            />
+        </div>
+
+        <div class="form-group">
+            <label
+                >Repeat Penalty:
+                <span>{{
+                    generationSettingsForm.get("repeat_penalty")?.value
+                }}</span></label
+            >
+            <input
+                type="range"
+                min="0.5"
+                max="2.0"
+                step="0.01"
+                formControlName="repeat_penalty"
+            />
+        </div>
+
+        <div class="form-group">
+            <label
+                >Max Tokens:
+                <span>{{
+                    generationSettingsForm.get("num_predict")?.value
+                }}</span></label
+            >
+            <input
+                type="range"
+                min="64"
+                max="4096"
+                step="64"
+                formControlName="num_predict"
+            />
+        </div>
+
+        <div class="form-group">
+            <label>{{ "stop_tokens" | translate }}</label>
+            <textarea formControlName="stop"></textarea>
+        </div>
+
+        <div class="button-row">
+            <button type="button" (click)="saveOrUpdatePreset()">
+                {{ "Save" | translate }}
+            </button>
+        </div>
+    </form>
+</div>

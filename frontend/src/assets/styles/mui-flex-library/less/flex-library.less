@@ -1,0 +1,267 @@
+@import "./flex-direction.less";
+@import "./flex-text.less";
+@import "./flex-spaces.less";
+@import "./flex-buttons.less";
+@import "./flex-decorations.less";
+@import "./flex-colums.less";
+@import "./flex-table.less";
+
+@mui-height: 40px;
+@mui-height-xxs: 20px;
+@mui-height-xs: 24px;
+@mui-height-s: 32px;
+@mui-height-m: 40px;
+@mui-height-l: 44px;
+@mui-height-xl: 56px;
+@mui-height-xxl: 60px;
+
+// =======================================================
+
+@mui-space: 4px;
+@mui-opacity-disabled: 0.56;
+
+@mui-radius: 4px;
+@mui-radius-l: 6px;
+@mui-radius-xl: 8px;
+
+@mui-color-blank: #fff;
+@mui-color-text: #333;
+
+@mui-text-title-family: "Roboto Medium";
+@mui-text-body-family: "Roboto Regular";
+
+// @mui-color-primary: #e30613;
+// @mui-color-primary-hovered: #c11e27;
+// @mui-color-primary-active: #af1b23;
+
+@mui-color-primary: #ffcc00;
+@mui-color-primary-hovered: #ffcc00;
+@mui-color-primary-active: #ffcc00;
+
+@mui-color-secondary: #ecf1f7;
+@mui-color-secondary-hovered: #e4ebf3;
+@mui-color-secondary-active: #dde4ed;
+
+@mui-color-info: #1771e6;
+@mui-color-info-hovered: #1464cc;
+@mui-color-info-active: #0953b3;
+
+@mui-color-error: #e01f19;
+@mui-color-error-hovered: #d3120e;
+@mui-color-error-active: #c40b08;
+
+@mui-color-success: #39b54a;
+@mui-color-success-hovered: #2ca53a;
+@mui-color-success-active: #168a21;
+
+@mui-color-warning: #ffdd2d;
+@mui-color-warning-hovered: #fcc521;
+@mui-color-warning-active: #fab619;
+
+@mui-color-text: #333;
+@mui-color-text-secondary: #959ba4;
+@mui-color-tabs: #79818c;
+@mui-color-tabs-border: #e7e8ea;
+
+// @mui-color-tabs-active: #333;
+// @mui-color-tabs-pressed: #333;
+// @mui-color-tabs-hovered: #333;
+
+@mui-color-tabs-active: #fff;
+@mui-color-tabs-pressed: #ecf1f7;
+@mui-color-tabs-hovered: #e4ebf3;
+
+@mui-input-color-default: #ecf1f7;
+@mui-input-color-hover: #e4ebf3;
+@mui-input-color-focus: #fff;
+
+@mui-color-blank: #fff;
+@mui-color-blank-disabled: rgba(255, 255, 255, 0.56);
+@mui-color-void: rgba(255, 255, 255, 0);
+@mui-color-true-black: #000;
+@mui-color-selection: rgba(255, 221, 45, 0.32);
+@mui-color-text: #333;
+@mui-color-text-light: #666;
+@mui-color-text-lighter: #909090;
+@mui-color-text-secondary: #959ba4;
+@mui-color-text-secondary-disabled: rgba(51, 51, 51, 0.4);
+@mui-color-text-error: #e01f19;
+@mui-color-text-success: #168a21;
+@mui-color-text-disabled: rgba(51, 51, 51, 0.56);
+@mui-color-text-error-disabled: rgba(224, 31, 25, 0.56);
+@mui-color-text-success-disabled: rgba(57, 181, 74, 0.56);
+@mui-color-border: #e7e8ea;
+@mui-color-border-dark: #cbcfd3;
+@mui-color-border-darker: #959ba4;
+@mui-color-border-active: #ffdd2d;
+@mui-color-border-focus: rgba(51, 51, 51, 0.48);
+@mui-color-border-disabled: rgba(231, 232, 234, 0.56);
+@mui-color-scrollbar: rgba(51, 51, 51, 0.24);
+@mui-color-scrollbar-hover: rgba(51, 51, 51, 0.36);
+@mui-color-scrollbar-active: rgba(51, 51, 51, 0.56);
+@mui-color-scrollbar-light: rgba(255, 255, 255, 0.24);
+@mui-color-scrollbar-light-hover: rgba(255, 255, 255, 0.36);
+@mui-color-scrollbar-light-active: rgba(255, 255, 255, 0.56);
+@mui-color-textfield: #ecf1f7;
+@mui-color-textfield-hover: #e4ebf3;
+@mui-color-textfield-active: #dde4ed;
+@mui-color-textfield-readonly: rgba(236, 241, 247, 0.56);
+@mui-color-textfield-disabled: rgba(236, 241, 247, 0.56);
+@mui-color-textfield-error: rgba(224, 31, 25, 0.08);
+@mui-color-textfield-error-hover: rgba(224, 31, 25, 0.16);
+@mui-color-textfield-error-focus-border: #e01f19;
+@mui-color-textfield-error-text: #e01f19;
+@mui-color-textfield-success: rgba(57, 181, 74, 0.08);
+@mui-color-textfield-success-hover: rgba(57, 181, 74, 0.16);
+@mui-color-textfield-success-focus-border: #39b54a;
+@mui-color-textfield-success-text: #39b54a;
+@mui-color-textfield-autofill: #fff5c0;
+@mui-color-textfield-light: rgba(255, 255, 255, 0.16);
+@mui-color-textfield-light-hover: rgba(255, 255, 255, 0.24);
+@mui-color-textfield-light-active: rgba(255, 255, 255, 0.32);
+@mui-color-textfield-light-focus-border: #fff;
+@mui-color-textfield-light-readonly: rgba(255, 255, 255, 0.08);
+@mui-color-textfield-light-disabled: rgba(255, 255, 255, 0.08);
+@mui-color-textfield-dark: rgba(51, 51, 51, 0.16);
+@mui-color-textfield-dark-hover: rgba(51, 51, 51, 0.24);
+@mui-color-textfield-dark-active: rgba(51, 51, 51, 0.28);
+@mui-color-textfield-dark-focus-border: #333;
+@mui-color-textfield-dark-readonly: rgba(51, 51, 51, 0.08);
+@mui-color-textfield-dark-disabled: rgba(51, 51, 51, 0.08);
+@mui-color-primary-text: #333;
+@mui-color-primary-text-disabled: rgba(51, 51, 51, 0.56);
+@mui-color-primary-disabled: rgba(255, 221, 45, 0.56);
+@mui-color-secondary: #ecf1f7;
+@mui-color-secondary-hover: #e4ebf3;
+@mui-color-secondary-active: #dde4ed;
+@mui-color-secondary-disabled: rgba(236, 241, 247, 0.56);
+@mui-color-outline-border: #1771e6;
+@mui-color-outline-border-hover: #1464cc;
+@mui-color-outline-hover: rgba(23, 113, 230, 0.08);
+@mui-color-outline-border-active: #0953b3;
+@mui-color-outline-active: rgba(23, 113, 230, 0.16);
+@mui-color-outline-border-disabled: rgba(23, 113, 230, 0.56);
+@mui-color-outline-dark-border: #333;
+@mui-color-outline-dark-hover: rgba(51, 51, 51, 0.08);
+@mui-color-outline-dark-border-hover: #909090;
+@mui-color-outline-dark-active: rgba(51, 51, 51, 0.16);
+@mui-color-outline-dark-border-disabled: rgba(51, 51, 51, 0.56);
+@mui-color-outline-dark-text-disabled: rgba(51, 51, 51, 0.56);
+@mui-color-outline-light-border: #fff;
+@mui-color-outline-light-hover: rgba(255, 255, 255, 0.08);
+@mui-color-outline-light-border-hover: rgba(255, 255, 255, 0.56);
+@mui-color-outline-light-active: rgba(255, 255, 255, 0.16);
+@mui-color-outline-light-focus-border: #fff;
+@mui-color-outline-light-border-disabled: rgba(255, 255, 255, 0.24);
+@mui-color-outline-light-text-disabled: rgba(255, 255, 255, 0.24);
+@mui-color-whiteblock-border: #e7e8ea;
+@mui-color-whiteblock-hover: #f5f5f6;
+@mui-color-whiteblock-border-hover: #cbcfd3;
+@mui-color-whiteblock-border-active: #ffdd2d;
+@mui-color-whiteblock-border-active-disabled: rgba(255, 221, 45, 0.56);
+@mui-color-whiteblock-border-active-hover: #fcc521;
+@mui-color-card-primary: #fff;
+@mui-color-card-secondary: #f5f5f6;
+@mui-color-flat-text-disabled: rgba(23, 113, 230, 0.56);
+@mui-color-flat-light-text-disabled: rgba(255, 255, 255, 0.36);
+@mui-color-flat-background-hover: #ecf1f7;
+@mui-color-flat-background-active: #e4ebf3;
+@mui-color-link: #1771e6;
+@mui-color-link-light: rgba(255, 255, 255, 0.56);
+@mui-color-link-hover: #1464cc;
+@mui-color-link-active: #0953b3;
+@mui-color-link-disabled: rgba(23, 113, 230, 0.56);
+@mui-color-textfield-placeholder: #79818c;
+@mui-color-textfield-placeholder-hover: #616871;
+@mui-color-textfield-placeholder-disabled: rgba(121, 129, 140, 0.56);
+@mui-color-textfield-border: #616871;
+@mui-color-textfield-label: #959ba4;
+@mui-color-textfield-icon: #959ba4;
+@mui-color-textfield-icon-hover: #616871;
+@mui-color-textfield-icon-disabled: rgba(149, 155, 164, 0.56);
+@mui-color-toggle-on-disabled: #959ba4;
+@mui-color-toggle-off-disabled: rgba(149, 155, 164, 0.56);
+@mui-color-tabs: #79818c;
+@mui-color-tabs-border: #e7e8ea;
+@mui-color-tabs-arrow: #e7e8ea;
+@mui-color-accordion-border: #cbcfd3;
+@mui-color-accordion-background-hover: #f5f5f6;
+@mui-color-status-text: #666;
+@mui-color-status: #959ba4;
+@mui-color-status-hover: #79818c;
+@mui-color-status-active: #616871;
+@mui-color-status-light: #ecf1f7;
+@mui-color-status-light-hover: #e4ebf3;
+@mui-color-status-light-active: #dde4ed;
+@mui-color-status-gray: #e7e8ea;
+@mui-color-status-gray-hover: #cbcfd3;
+@mui-color-status-gray-active: #959ba4;
+@mui-color-status-error: #e01f19;
+@mui-color-status-error-disabled: rgba(224, 31, 25, 0.56);
+@mui-color-status-error-hover: #d3120e;
+@mui-color-status-error-active: #c40b08;
+@mui-color-status-error-light: rgba(224, 31, 25, 0.12);
+@mui-color-status-success: #39b54a;
+@mui-color-status-success-hover: #2ca53a;
+@mui-color-status-success-active: #168a21;
+@mui-color-status-success-light: rgba(57, 181, 74, 0.16);
+@mui-color-status-secondary: #1771e6;
+@mui-color-status-secondary-hover: #1464cc;
+@mui-color-status-secondary-active: #0953b3;
+@mui-color-status-secondary-text: #fff;
+@mui-color-status-secondary-text-disabled: rgba(255, 255, 255, 0.56);
+@mui-color-avatar: #dde4ed;
+@mui-color-textfield-light-placeholder: rgba(255, 255, 255, 0.56);
+@mui-color-textfield-light-placeholder-disabled: rgba(255, 255, 255, 0.36);
+@mui-color-textfield-light-label: rgba(255, 255, 255, 0.56);
+@mui-color-textfield-light-icon: rgba(255, 255, 255, 0.56);
+@mui-color-textfield-light-icon-disabled: rgba(255, 255, 255, 0.36);
+@mui-color-textfield-dark-placeholder-disabled: rgba(51, 51, 51, 0.36);
+@mui-color-textfield-dark-icon-disabled: rgba(51, 51, 51, 0.36);
+@mui-color-tooltip-dark-background: #616871;
+@mui-color-tooltip-error-background: #e01f19;
+@mui-color-tooltip-light-background: #fff;
+@mui-color-alert-warning: #fcc521;
+@mui-color-table-bar: #79818c;
+@mui-color-menu-dark: #616871;
+@mui-color-support-mustard: #ffd450;
+@mui-color-support-texas: #ffb74c;
+@mui-color-support-tan: #f8a34d;
+@mui-color-support-salmon: #ff8863;
+@mui-color-support-sienna: #ee805d;
+@mui-color-support-bittersweet: #ff7b76;
+@mui-color-support-pinkie: #ff78a7;
+@mui-color-support-charm: #d45d8c;
+@mui-color-support-amethyst: #bc71c9;
+@mui-color-support-helio: #a381ff;
+@mui-color-support-lilac: #8f75d1;
+@mui-color-support-malibu: #7caeff;
+@mui-color-support-havelock: #65a7e0;
+@mui-color-support-picton: #4dc3f7;
+@mui-color-support-mint: #4bd0e1;
+@mui-color-support-fountain: #4eb6c2;
+@mui-color-support-puertorico: #4fbdb2;
+@mui-color-support-bay: #4da197;
+@mui-color-support-forest: #73b077;
+@mui-color-support-york: #81c785;
+@mui-color-support-feijoa: #aed57f;
+
+@mui-clear-hover: rgba(0, 0, 0, 0.16);
+
+mui-wrapper[data-appearance="primary"] {
+    background-color: @mui-color-warning;
+    color: @mui-color-text;
+    font-family: "Roboto Light";
+}
+mui-wrapper[data-appearance="primary"][data-state="hovered"] {
+    background-color: @mui-color-warning-hovered;
+    color: @mui-color-text;
+}
+
+mui-wrapper[data-appearance="flat"][data-state="hovered"] {
+    border: 1px solid @mui-color-warning-hovered;
+}
+
+mui-wrapper[data-appearance="outline"] {
+    border: 1px solid @mui-color-border-dark;
+}

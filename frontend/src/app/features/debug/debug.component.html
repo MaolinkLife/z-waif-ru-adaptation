@@ -1,0 +1,105 @@
+<div class="filters">
+    <!-- первая строка: источники -->
+    <div class="chips">
+        <span
+            class="chip"
+            *ngFor="let source of availableSources"
+            [class.active]="activeSources.includes(source)"
+            (click)="toggleSource(source)"
+        >
+            {{ source }}
+            <span
+                *ngIf="activeSources.includes(source)"
+                (click)="removeSource($event, source)"
+                >✕</span
+            >
+        </span>
+    </div>
+
+    <!-- вторая строка: статусы -->
+    <div class="chips">
+        <span
+            class="chip error"
+            [class.active]="activeStatuses.includes('Error')"
+            (click)="toggleStatus('Error')"
+        >
+            Error
+        </span>
+        <span
+            class="chip success"
+            [class.active]="activeStatuses.includes('Success')"
+            (click)="toggleStatus('Success')"
+        >
+            Success
+        </span>
+        <span
+            class="chip info"
+            [class.active]="activeStatuses.includes('Info')"
+            (click)="toggleStatus('Info')"
+        >
+            Info
+        </span>
+    </div>
+</div>
+
+<div class="debug-log">
+    <div
+        *ngFor="let log of filteredLogs; let i = index"
+        class="log-entry"
+        [ngClass]="getLogClass(log)"
+    >
+        <div class="log-header">
+            <span class="tag">{{ log.event_type }}</span>
+            <span class="timestamp">
+                {{ log.timestamp | date : "dd.MM.yyyy HH:mm:ss" }}
+            </span>
+            <span class="tags-inline" *ngIf="log.tags?.length">
+                <span class="mini-tag" *ngFor="let t of log.tags"
+                    >[{{ t }}]</span
+                >
+            </span>
+        </div>
+
+        <div class="log-body">
+            <div class="log-message">
+                {{
+                    log.msg ||
+                        log.details?.msg ||
+                        log.details?.error ||
+                        log.details?.status
+                }}
+            </div>
+
+            <div
+                class="log-toggle"
+                *ngIf="hasDetails(log)"
+                (click)="toggleDetails(i)"
+            >
+                <span>
+                    {{
+                        expandedLogs.has(i)
+                            ? "▼ Hide details"
+                            : "▶ Show details"
+                    }}
+                </span>
+            </div>
+
+            <div
+                class="log-details"
+                [class.open]="expandedLogs.has(i)"
+                [@expandCollapse]="expandedLogs.has(i) ? 'open' : 'closed'"
+            >
+                <pre *ngIf="expandedLogs.has(i)">{{ log.details | json }}</pre>
+            </div>
+
+            <div class="log-context" *ngIf="log.details?.context">
+                {{ log.details.context }}
+            </div>
+        </div>
+
+        <div class="log-footer">
+            <span class="meta-source">{{ log.meta?.source }}</span>
+            <span class="meta-severity">{{ log.statusLabel }}</span>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,493 @@
+<ng-container *ngIf="config$ | async as config">
+    <div class="chat-container" [ngStyle]="sidePanelOffsetStyle">
+        <div class="messages" #messagesContainer>
+            <!-- Messages will be here -->
+            <div class="load-more-container" *ngIf="hasMoreMessages">
+                <button
+                    class="load-more-btn"
+                    (click)="loadMoreHistory()"
+                    [disabled]="isLoadingHistory"
+                >
+                    <span *ngIf="!isLoadingHistory"
+                        >Загрузить еще сообщения</span
+                    >
+                    <span *ngIf="isLoadingHistory">Загрузка...</span>
+                </button>
+            </div>
+
+            <div
+                class="message"
+                *ngFor="let msg of chatHistory; let i = index"
+                [ngClass]="msg.role"
+            >
+                <div class="timestamp">
+                    {{ formatTimestamp(msg.timestamp) }}
+                </div>
+
+                <div class="sender" *ngIf="msg.role === 'user'">
+                    {{ config.userName }}:
+                </div>
+                <div class="sender" *ngIf="msg.role === 'assistant'">
+                    {{ config.charName }}:
+                </div>
+
+                <div class="content">
+                    <app-message-renderer
+                        [content]="msg.content"
+                        [isStreaming]="isMessageStreaming(msg)"
+                    >
+                    </app-message-renderer>
+                </div>
+
+                <div class="message-media" *ngIf="msg.media?.length">
+                    <div class="message-media__item" *ngFor="let media of msg.media" [ngSwitch]="media.category">
+                        <div
+                            class="message-media__image"
+                            *ngSwitchCase="'image'"
+                            [style.backgroundImage]="getMediaSource(media) ? 'url(' + getMediaSource(media) + ')' : null"
+                            (click)="previewMedia(media)"
+                            [attr.title]="media.description || media.name"
+                        ></div>
+                        <div class="message-media__audio" *ngSwitchCase="'audio'">
+                            <audio controls [src]="getMediaSource(media)"></audio>
+                            <span class="media-name">{{ media.name }}</span>
+                        </div>
+                        <div class="message-media__video" *ngSwitchCase="'video'">
+                            <video controls [src]="getMediaSource(media)"></video>
+                            <span class="media-name">{{ media.name }}</span>
+                        </div>
+                        <div
+                            class="message-media__file"
+                            *ngSwitchDefault
+                            (click)="downloadMedia(media)"
+                            [attr.title]="media.description || media.name"
+                        >
+                            <svg
+                                width="20"
+                                height="20"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="1.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <path d="M7 3h6l5 5v13H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path>
+                                <polyline points="13 3 13 9 19 9"></polyline>
+                            </svg>
+                            <span class="media-name">{{ media.name }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Message actions -->
+                <div class="actions">
+                    <button class="btn-icon" (click)="copyMessage(msg)">
+                        <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        >
+                            <rect
+                                x="9"
+                                y="9"
+                                width="12"
+                                height="12"
+                                rx="2"
+                                ry="2"
+                            />
+                            <path
+                                d="M5 15H4a2 2 0 0 0-2 2V4a2 2 0 0 0 2 2h9a2 2 0 0 1 2 2v1"
+                            />
+                        </svg>
+                    </button>
+                    <button
+                        class="btn-icon"
+                        (click)="editMessage(msg)"
+                        *ngIf="msg.role === 'user'"
+                    >
+                        <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        >
+                            <path
+                                d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h2"
+                            />
+                            <path
+                                d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                            />
+                        </svg>
+                    </button>
+                    <button
+                        class="btn-icon"
+                        (click)="deleteMessage(msg, false)"
+                    >
+                        <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        >
+                            <path d="M3 6l18 0" />
+                            <path
+                                d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                            />
+                        </svg>
+                    </button>
+                    <!-- <button
+                        class="btn-icon"
+                        (click)="toggleVoice(msg.id)"
+                        *ngIf="msg.role === 'assistant' && msg.id"
+                    >
+                        <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        >
+                            <path
+                                d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"
+                            />
+                            <path d="M12 6v12" />
+                            <path d="M6 12h12" />
+                        </svg>
+                    </button> -->
+                    <button
+                        class="btn-icon"
+                        (click)="toggleVoice(msg.id)"
+                        *ngIf="msg.role === 'assistant' && msg.id"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="lucide lucide-volume2 inline-flex items-center justify-center w-5 h-5"
+                        >
+                            <path
+                                d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"
+                            ></path>
+                            <path d="M16 9a5 5 0 0 1 0 6"></path>
+                            <path d="M19.364 18.364a9 9 0 0 0 0-12.728"></path>
+                        </svg>
+                    </button>
+                    <button
+                        class="btn-icon"
+                        (click)="rerollMessage(msg.id)"
+                        *ngIf="
+                            msg.role === 'assistant' &&
+                            i === chatHistory.length - 1
+                        "
+                    >
+                        <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <path
+                                d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
+                            ></path>
+                            <path d="M3 3v5h5"></path>
+                            <path
+                                d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"
+                            ></path>
+                            <path d="M16 16h5v5"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div *ngIf="loading" class="message assistant">
+                <div class="sender">{{ config.charName }}:</div>
+                Печатаю...
+            </div>
+
+            <div id="bottomAnchor"></div>
+        </div>
+
+        <!-- Input area with your buttons -->
+        <form (submit)="sendMessage()" class="input-area">
+            <input
+                #fileInput
+                type="file"
+                hidden
+                multiple
+                (change)="onFilesSelected($event)"
+            />
+
+            <div class="attachments-preview" *ngIf="attachments.length">
+                <div
+                    class="attachment-item"
+                    *ngFor="let attachment of attachments"
+                    [attr.title]="attachment.description || attachment.name"
+                >
+                    <button
+                        type="button"
+                        class="attachment-remove"
+                        (click)="removeAttachment(attachment.id)"
+                        aria-label="Удалить вложение"
+                    >
+                        <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 14 14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                            stroke-linecap="round"
+                        >
+                            <line x1="3" y1="3" x2="11" y2="11"></line>
+                            <line x1="11" y1="3" x2="3" y2="11"></line>
+                        </svg>
+                    </button>
+                    <div
+                        class="attachment-thumb"
+                        [ngClass]="{ 'is-file': attachment.category !== 'image' }"
+                        [style.backgroundImage]="attachment.category === 'image' && attachment.dataUrl ? 'url(' + attachment.dataUrl + ')' : null"
+                    >
+                        <svg
+                            *ngIf="attachment.category !== 'image'"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                        >
+                            <path d="M7 3h6l5 5v13H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path>
+                            <polyline points="13 3 13 9 19 9"></polyline>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-body">
+                <button
+                    type="button"
+                    class="attach-btn"
+                    (click)="toggleAttachDropdown()"
+                >
+                    <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </button>
+
+                <button
+                    type="button"
+                    class="emoji-btn"
+                    (click)="toggleEmojiDropdown($event)"
+                    title="Смайлики"
+                >
+                    <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                        <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                        <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                    </svg>
+                </button>
+
+                <textarea
+                    class="chat-input"
+                    [formControl]="chatInput"
+                    placeholder="Скажи что-нибудь..."
+                    (keydown)="onKeyDown($event)"
+                    (keyup)="onKeyUp()"
+                ></textarea>
+
+                <button
+                    type="button"
+                    class="voice-btn"
+                    (click)="toggleRecording()"
+                    [ngClass]="{ recording: recording }"
+                >
+                    <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 18 18"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            d="M5.66699 14.4165V3.5835C5.66699 2.89314 6.22664 2.3335 6.91699 2.3335C7.6072 2.33367 8.16699 2.89325 8.16699 3.5835V14.4165C8.16699 15.1068 7.6072 15.6663 6.91699 15.6665C6.22664 15.6665 5.66699 15.1069 5.66699 14.4165ZM9.83301 11.9165V6.0835C9.83301 5.39325 10.3928 4.83367 11.083 4.8335C11.7734 4.8335 12.333 5.39314 12.333 6.0835V11.9165C12.333 12.6069 11.7734 13.1665 11.083 13.1665C10.3928 13.1663 9.83301 12.6068 9.83301 11.9165ZM1.5 10.2505V7.75049C1.5 7.06013 2.05964 6.50049 2.75 6.50049C3.44036 6.50049 4 7.06013 4 7.75049V10.2505C3.99982 10.9407 3.44025 11.5005 2.75 11.5005C2.05975 11.5005 1.50018 10.9407 1.5 10.2505ZM14 10.2505V7.75049C14 7.06013 14.5596 6.50049 15.25 6.50049C15.9404 6.50049 16.5 7.06013 16.5 7.75049V10.2505C16.4998 10.9407 15.9402 11.5005 15.25 11.5005C14.5598 11.5005 14.0002 10.9407 14 10.2505Z"
+                            fill="currentColor"
+                        ></path>
+                    </svg>
+                </button>
+                <button
+                    type="button"
+                    class="voice-mode-btn"
+                    [ngClass]="{
+                        active: voiceModeEnabled,
+                        loading: voiceModeLoading
+                    }"
+                    (click)="toggleVoiceMode()"
+                    [disabled]="voiceModeLoading"
+                    [attr.title]="
+                        voiceModeEnabled
+                            ? 'Отключить VoiceMode'
+                            : 'Включить VoiceMode'
+                    "
+                >
+                    <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            d="M12 3C10.34 3 9 4.34 9 6V12C9 13.66 10.34 15 12 15C13.66 15 15 13.66 15 12V6C15 4.34 13.66 3 12 3Z"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        />
+                        <path
+                            d="M7 11V12C7 14.76 9.24 17 12 17C14.76 17 17 14.76 17 12V11"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        />
+                        <path
+                            d="M12 17V21"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        />
+                        <path
+                            d="M9 21H15"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        />
+                    </svg>
+                </button>
+
+                <button
+                    type="button"
+                    class="stop-btn"
+                    (click)="stopVoice()"
+                    title="Остановить озвучку"
+                >
+                    <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <path d="M11 5L6 9H2v6h4l5 4V5z" />
+                        <line x1="23" y1="9" x2="17" y2="15" />
+                        <line x1="17" y1="9" x2="23" y2="15" />
+                    </svg>
+                </button>
+
+                <button type="submit" class="send-btn" [disabled]="isProcessingAttachments">
+                    <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <path d="m5 12 7-7 7 7"></path>
+                        <path d="M12 19V5"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <app-emoji-picker
+                *ngIf="showEmojiPicker"
+                [position]="
+                    emojiPickerMode === 'dropdown'
+                        ? emojiDropdownPosition
+                        : null
+                "
+                [displayMode]="emojiPickerMode"
+                [sidePanelPosition]="emojiPickerSide"
+                (emojiSelect)="addEmoji($event)"
+                (requestClose)="showEmojiPicker = false"
+            ></app-emoji-picker>
+        </form>
+
+        <div class="media-preview-overlay" *ngIf="selectedMedia" (click)="closeMediaPreview()">
+            <div class="media-preview" (click)="$event.stopPropagation()">
+                <button
+                    type="button"
+                    class="media-preview__close"
+                    (click)="closeMediaPreview()"
+                    aria-label="Закрыть просмотр"
+                >
+                    <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <line x1="4" y1="4" x2="16" y2="16"></line>
+                        <line x1="16" y1="4" x2="4" y2="16"></line>
+                    </svg>
+                </button>
+                <img
+                    *ngIf="selectedMedia?.category === 'image'"
+                    [src]="selectedMedia ? getMediaSource(selectedMedia) : null"
+                    [alt]="selectedMedia?.name"
+                />
+                <div class="media-preview__name">{{ selectedMedia?.name }}</div>
+            </div>
+        </div>
+
+        <!-- <div class="voice-mode-indicator" *ngIf="voiceModeEnabled">
+            <span class="dot"></span>
+            VoiceMode активен
+        </div> -->
+    </div>
+</ng-container>

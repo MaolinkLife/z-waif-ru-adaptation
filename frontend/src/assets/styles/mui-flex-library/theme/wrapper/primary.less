@@ -1,0 +1,30 @@
+mui-wrapper[data-appearance="primary"] {
+    background: var(--mui-primary);
+    color: var(--mui-primary-text);
+
+    &[data-state="hovered"] {
+        background: var(--mui-primary-hover);
+    }
+
+    &[data-state="pressed"] {
+        background: var(--mui-primary-active);
+    }
+
+    &[data-state="disabled"] {
+        opacity: var(--mui-disabled-opacity);
+    }
+
+    &._invalid {
+        color: var(--mui-negative-night);
+        background: var(--mui-error-bg);
+
+        &[data-state="hovered"],
+        &[data-state="pressed"] {
+            background: var(--mui-error-bg-hover);
+        }
+
+        &._focused:after {
+            color: var(--mui-error-fill);
+        }
+    }
+}

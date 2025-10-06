@@ -1,0 +1,64 @@
+@import "../fonts/BebasNeue/BebasNeue.less";
+@import "../fonts/HelveticaNeueCyr/HelveticaNeueCyr.less";
+@import "../fonts//Roboto/Roboto.less";
+@import "./mui-flex-library/mui-flex-library-global.less";
+
+@background-color-gray-700: #17181c;
+@background-color-gray-500: #232429;
+@background-color-gray-dark-green: #020f17;
+@background-color-dark-green: #01322e;
+@background-color-gray-100: #2e3339;
+
+@mui-flex-color-info: #406dff;
+@mui-flex-color-red-light: #f64d54;
+@mui-flex-color-red: #c32a2a;
+@mui-flex-color-error: #f72320;
+@mui-flex-color-warning: #f58716;
+@mui-flex-color-success: #33dc41;
+@mui-flex-color-success-hovered: #248c29;
+@mui-flex-color-lime: #3dd9e8;
+@mui-flex-color-lime-hovered: #20ffe5;
+
+@mw-color-secondary: #f6d265;
+@mw-color-secondary-hovered: lighten(@mw-color-secondary, 12%);
+
+@mui-flex-color-text-hovered: #e5e3e6;
+@mui-flex-color-text-primary: #9ca4af;
+@mui-flex-color-text-default: #686d73;
+@mui-flex-color-text-disable: #3a3b40;
+
+@mui-flex-color-active: #ffdd2d;
+
+@mui-flex-color-gray-400: #3d4047;
+@mui-flex-color-gray-600: #020f17;
+
+@mw-background-primary-color: @background-color-gray-700;
+@mw-text-primary-color: @mui-flex-color-text-primary;
+
+@mw-color-secondary: #f6d265;
+@mw-color-secondary-hovered: lighten(@mw-color-secondary, 12%);
+
+html {
+    height: 100%;
+    background-color: @mw-background-primary-color;
+    color: @mw-text-primary-color;
+}
+В body {
+    height: 100%;
+    margin: 0;
+}
+
+*::after,
+*::before,
+* {
+    box-sizing: border-box;
+    font-family: "Roboto Medium";
+}
+
+::-webkit-scrollbar {
+    width: 0;
+}
+
+.wrapper {
+    flex-wrap: wrap;
+}

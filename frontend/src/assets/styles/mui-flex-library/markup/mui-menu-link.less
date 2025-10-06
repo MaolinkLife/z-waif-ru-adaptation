@@ -1,0 +1,32 @@
+.mui-menu-link {
+    .text-caption-bold();
+    display: block;
+    flex: 1;
+    min-width: 100%;
+    box-sizing: border-box;
+    padding: 8px 40px 8px 16px;
+    text-transform: uppercase;
+    text-decoration: none;
+    outline: none;
+    color: var(--mui-link);
+
+    &:hover {
+        color: var(--mui-link-hover);
+    }
+
+    &_active,
+    &_active:hover {
+        color: var(--mui-text-01);
+    }
+
+    &_disabled {
+        opacity: var(--mui-disabled-opacity);
+    }
+
+    &_nav,
+    &_nav:hover,
+    &_nav:active,
+    &_nav.mui-menu-link_active {
+        color: var(--mui-text-01);
+    }
+}

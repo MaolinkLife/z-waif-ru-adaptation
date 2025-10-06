@@ -1,0 +1,177 @@
+.mui-text {
+    font-style: normal;
+    font-weight: normal;
+
+    &_h1 {
+        font-size: 50px;
+        line-height: 56px;
+        letter-spacing: -0.3px;
+        font-style: normal;
+        font-weight: bold;
+        font-family: "Roboto Medium";
+    }
+
+    &_h2 {
+        font-size: 40px;
+        line-height: 44px;
+        letter-spacing: -0.3px;
+        font-style: normal;
+        font-weight: bold;
+        font-family: "Roboto Medium";
+    }
+
+    &_h3 {
+        font-size: 30px;
+        line-height: 36px;
+        font-weight: bold;
+        letter-spacing: -0.3px;
+        font-family: "Roboto Medium";
+    }
+
+    &_h4 {
+        font-size: 28px;
+        line-height: 32px;
+        font-weight: bold;
+        letter-spacing: -0.3px;
+        font-family: "Roboto Medium";
+    }
+
+    &_h5 {
+        font-size: 24px;
+        line-height: 28px;
+        font-weight: bold;
+        letter-spacing: -0.3px;
+        font-family: "Roboto Medium";
+    }
+
+    &_h6 {
+        font-size: 20px;
+        line-height: 24px;
+        font-weight: bold;
+        letter-spacing: -0.3px;
+        font-family: "Roboto Medium";
+    }
+
+    &_body-xl {
+        font-family: "Roboto Regular";
+        font-size: 19px;
+        line-height: 28px;
+        font-weight: normal;
+        letter-spacing: 0;
+    }
+
+    &_body-l {
+        font-family: "Roboto Regular";
+        font-size: 17px;
+        line-height: 28px;
+        font-weight: normal;
+        letter-spacing: 0;
+    }
+
+    &_body-l_secondary {
+        font-family: "Roboto Regular";
+        font-size: 17px;
+        line-height: 24px;
+        font-weight: normal;
+        letter-spacing: 0;
+    }
+
+    &_body-m {
+        font-family: "Roboto Regular";
+        font-size: 15px;
+        line-height: 24px;
+        font-weight: normal;
+        letter-spacing: 0;
+    }
+
+    &_body-m_secondary {
+        font-family: "Roboto Regular";
+        font-size: 15px;
+        line-height: 20px;
+        font-weight: normal;
+        letter-spacing: 0;
+    }
+
+    &_body-s {
+        font-family: "Roboto Regular";
+        font-size: 13px;
+        line-height: 20px;
+        letter-spacing: 0;
+        font-weight: normal;
+    }
+
+    &_body-s_secondary {
+        font-family: "Roboto Regular";
+        font-size: 13px;
+        line-height: 16px;
+        letter-spacing: 0;
+        font-weight: normal;
+    }
+
+    &_body-xs {
+        font-family: "Roboto Regular";
+        font-size: 11px;
+        line-height: 16px;
+        letter-spacing: 0.4px;
+        font-weight: normal;
+    }
+
+    &_bold {
+        font-weight: bold;
+    }
+
+    &_link {
+        text-decoration: none;
+        color: inherit;
+
+        &-hovered {
+            opacity: 0.7;
+            transition: opacity, 0.3s ease-in-out;
+        }
+
+        &-hovered:hover {
+            opacity: 1;
+            transition: opacity, 0.3s ease-in-out;
+        }
+    }
+}
+
+.router_link {
+    opacity: 0.7;
+    transition: opacity, border 0.3s ease-in-out;
+    margin: 0 8px;
+    padding: 8px 0;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    box-sizing: border-box;
+    border-bottom: 2px solid transparent;
+
+    &-active {
+        opacity: 1;
+        transition: opacity, border 0.3s ease-in-out;
+        border-bottom: 2px solid #e2b51f;
+    }
+}
+
+.router_link:hover:not(.router_link-active) {
+    opacity: 1;
+    transition: opacity, border 0.3s ease-in-out;
+    border-bottom: 2px solid #505154;
+}
+
+.mui-link {
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.3s ease-in-out;
+    font-family: "Roboto Medium";
+    font-weight: normal;
+    font-style: normal;
+    font-size: 16px;
+    line-height: 19px;
+}
+
+.mui-link:hover:not([ng-reflect-router-link=""]) {
+    color: #23ba99 !important;
+    transition: color 0.3s ease-in-out;
+}

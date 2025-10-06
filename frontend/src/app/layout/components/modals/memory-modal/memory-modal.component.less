@@ -1,0 +1,84 @@
+.entry-block {
+    background: #1a1a1a; // @color-surface
+    border: 1px solid #2b2b2b; // @color-border
+    border-radius: 8px; // @radius
+    padding: 1rem;
+    margin-bottom: 1.25rem;
+    // box-shadow: 0 0 8px rgba(0, 216, 255, 0.05); // soft focus glow
+    transition: box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+
+    &:hover {
+        box-shadow: 0 0 12px rgba(0, 216, 255, 0.15);
+    }
+
+    h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #00d8ff; // @color-accent
+        font-family: "JetBrains Mono", monospace;
+    }
+
+    .entry-text {
+        // width: 100%;
+        background: #0d0d0d; // @color-bg
+        color: #cccccc; // @color-text
+        border: 1px solid #2b2b2b; // @color-border
+        border-radius: 6px;
+        padding: 0.75rem;
+        font-family: "JetBrains Mono", monospace;
+        resize: vertical;
+        min-height: 6rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+
+        &:focus {
+            outline: none;
+            border-color: #b3f0ff; // @color-focus
+            box-shadow: 0 0 0 2px rgba(0, 216, 255, 0.2);
+        }
+    }
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+
+    .accent-btn {
+        background: #00d8ff;
+        color: #0d0d0d;
+        border: none;
+        padding: 0.5rem 1rem;
+        font-weight: bold;
+        border-radius: 6px;
+        cursor: pointer;
+        font-family: "JetBrains Mono", monospace;
+        transition: background 0.2s;
+
+        &:not(*:last-child) {
+            margin-right: 0.5rem;
+        }
+
+        &:hover {
+            background: #007a99;
+        }
+    }
+
+    .close-btn {
+        background: transparent;
+        border: 1px solid #2b2b2b;
+        color: #cccccc;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+        font-family: "JetBrains Mono", monospace;
+        transition: color 0.2s, border-color 0.2s;
+
+        &:hover {
+            color: #ffffff;
+            border-color: #00d8ff;
+        }
+    }
+}

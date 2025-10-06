@@ -1,28 +1,110 @@
-# --- Личные данные и лор ---
-*_lorebook.json
-*_softreset.json
-*_charactercard.yaml
-config.json
+# =======================
+# FRONTEND (Angular)
+# =======================
 
-# --- Логи и временные файлы ---
-log.txt
-LiveLog.json
-LiveLogBackup.bak
-token.txt
+# compiled output
+frontend/dist/
+frontend/tmp/
+frontend/out-tsc/
+# Only exists if Bazel was run
+frontend/bazel-out/
 
-# --- Python cache ---
-__pycache__/
-*.py[cod]
+# dependencies
+frontend/node_modules/
 
-# --- Виртуальное окружение ---
-venv/
-.venv/
+# profiling files
+frontend/chrome-profiler-events*.json
 
-# --- Базы данных и RAG-память ---
-RAG_Database/
+# misc
+frontend/.sass-cache
+frontend/connect.lock
+frontend/coverage/
+frontend/libpeerconnection.log
+frontend/npm-debug.log
+frontend/yarn-error.log
+frontend/testem.log
+frontend/typings/
 
-# --- IDE-шные хвосты ---
-.vscode/
+# Angular project IDE configs
+frontend/.idea/
+frontend/.project
+frontend/.classpath
+frontend/.c9/
+frontend/*.launch
+frontend/.settings/
+frontend/*.sublime-workspace
+
+# VSCode
+frontend/.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+frontend/.history/
+
+# =======================
+# BACKEND (Python)
+# =======================
+
+# Byte-compiled / optimized / DLL files
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.py[cod]
+backend/*.so
+
+# Virtual environment
+backend/venv/
+
+# Logs and caches
+backend/*.log
+backend/.mypy_cache/
+backend/.pytest_cache/
+backend/.cache/
+
+# IDEs
 .idea/
+.vscode/
+
+# =======================
+# SYSTEM FILES
+# =======================
+
+.DS_Store
+Thumbs.db
+*.log
 *.swp
-*.bak
+*.tmp
+
+# =======================
+# CHARACTER CARDS
+# =======================
+
+# Ignore all personal cards
+backend/config/characters/*
+
+# But we leave the default
+!backend/config/characters/default.yaml
+
+# Config.json — created automatically, do not push
+backend/config/config.json
+backend/config/lorebook.json
+backend/config/generation_presets.json
+
+backend/storage/history/*
+backend/storage/files/*
+backend/storage/database/core.db
+backend/storage/vector_store
+
+backend/temp/audio/*
+backend/temp/logs/*
+backend/temp/vision/*
+backend/temp/voice/*
+
+backend/logs/
+
+# Временно, потом удалится вместо с игнором.
+open-webui
+old-project
+docs
+
+

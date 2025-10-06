@@ -1,0 +1,61 @@
+<div class="message-renderer">
+    <ng-container *ngFor="let block of blocks$ | async; trackBy: trackByBlock">
+        <ng-container [ngSwitch]="block.type">
+            <markdown
+                *ngSwitchCase="'text'"
+                [data]="block.rawContent"
+            ></markdown>
+
+            <div
+                *ngSwitchCase="'code'"
+                class="block code-block"
+                [class.streaming]="!block.isComplete"
+            >
+                <div class="code-header" *ngIf="block.language">
+                    <span class="language">{{ block.language || "code" }}</span>
+                    <span class="status" *ngIf="!block.isComplete">●</span>
+                </div>
+                <pre class="code-content"><code>{{ block.content }}</code></pre>
+            </div>
+
+            <div *ngSwitchCase="'header'" class="block header-block">
+                <h3>{{ block.content }}</h3>
+            </div>
+
+            <div *ngSwitchCase="'list'" class="block list-block">
+                <ul>
+                    <li>{{ block.content }}</li>
+                </ul>
+            </div>
+
+            <div
+                *ngSwitchCase="'thinking'"
+                class="block thinking-block"
+                [class.streaming]="isStreaming"
+                [class.expanded]="block.isExpanded || isStreaming"
+            >
+                <button
+                    type="button"
+                    class="thinking-header"
+                    (click)="toggleThinking(block)"
+                    [disabled]="isStreaming"
+                >
+                    <span class="icon">✦</span>
+                    <span class="label">Размышляет</span>
+                    <span
+                        class="chevron"
+                        [class.rotated]="block.isExpanded || isStreaming"
+                        >▾</span
+                    >
+                </button>
+                <div
+                    class="thinking-body"
+                    [class.expanded]="block.isExpanded || isStreaming"
+                    [innerHTML]="block.safeContent || block.rawContent"
+                ></div>
+            </div>
+
+            <hr *ngSwitchCase="'divider'" class="divider-block" />
+        </ng-container>
+    </ng-container>
+</div>

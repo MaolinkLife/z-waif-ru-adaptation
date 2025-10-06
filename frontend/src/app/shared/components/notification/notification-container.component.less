@@ -1,0 +1,100 @@
+.notification {
+    display: flex;
+    align-items: stretch;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    min-width: 320px;
+    max-width: 480px;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: #2b2b2b;
+    color: #fff;
+    overflow: hidden; // теперь вернём, но радиус остаётся
+}
+
+/* левая цветная колонка */
+.notification-icon {
+    flex: 0 0 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.06); // заменится модификаторами
+}
+
+/* контент */
+.notification-content {
+    flex: 1;
+    padding: 12px 16px; // отступы теперь тут
+}
+
+/* заголовок */
+.notification-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+    line-height: 1.4;
+}
+
+/* текст */
+.notification-message {
+    font-size: 14px;
+    opacity: 0.9;
+    line-height: 1.5;
+}
+
+/* кнопка закрытия */
+.close-btn {
+    align-self: flex-start;
+    margin: 8px;
+    padding: 4px;
+    border: none;
+    background: none;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: color 0.2s, background 0.2s;
+
+    &:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.1);
+    }
+}
+
+/* состояния */
+.notification--success {
+    .notification-icon {
+        background: #4caf50;
+    }
+    .notification-title {
+        color: #4caf50;
+    }
+}
+.notification--error {
+    .notification-icon {
+        background: #f44336;
+    }
+    .notification-title {
+        color: #f44336;
+    }
+}
+.notification--warning {
+    .notification-icon {
+        background: #ff9800;
+    }
+    .notification-title {
+        color: #ff9800;
+    }
+}
+.notification--info {
+    .notification-icon {
+        background: #3f51b5;
+    }
+    .notification-title {
+        color: #3f51b5;
+    }
+}
+
+.notification-icon > svg {
+    width: 24px;
+    height: 24px;
+}

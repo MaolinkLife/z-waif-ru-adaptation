@@ -1,0 +1,205 @@
+@import "../../assets/styles/lim-ui/colors.less";
+
+:host {
+    position: fixed;
+    z-index: 1000;
+}
+
+.emoji-dropdown {
+    position: fixed;
+    background: @color-surface;
+    border: 1px solid @color-border;
+    border-radius: @radius;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    width: 320px;
+    display: flex;
+    flex-direction: column;
+    max-height: 300px;
+    overflow: hidden;
+    color: @color-text;
+
+    &.mode-side-panel {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        max-height: none;
+        height: 100vh;
+        border-radius: 0;
+        width: 360px;
+        max-width: 90vw;
+    }
+
+    &.mode-side-panel.side-right {
+        right: 0;
+        left: auto;
+        animation: slide-in-right 0.2s ease forwards;
+    }
+
+    &.mode-side-panel.side-left {
+        left: 0;
+        right: auto;
+        animation: slide-in-left 0.2s ease forwards;
+    }
+
+    &.mode-side-panel.side-top,
+    &.mode-side-panel.side-bottom {
+        width: 100%;
+        max-width: none;
+        height: 360px;
+        left: 0;
+        right: 0;
+    }
+
+    &.mode-side-panel.side-top {
+        top: 0;
+        bottom: auto;
+        animation: slide-in-top 0.2s ease forwards;
+    }
+
+    &.mode-side-panel.side-bottom {
+        bottom: 0;
+        top: auto;
+        animation: slide-in-bottom 0.2s ease forwards;
+    }
+}
+
+.emoji-search {
+    padding: 0.5rem;
+    border-bottom: 1px solid @color-border;
+
+    .emoji-search-input {
+        width: 100%;
+        padding: 0.5rem;
+        border-radius: @radius;
+        border: 1px solid @color-border;
+        background: @color-bg;
+        color: @color-text;
+        font-family: @font-family;
+        box-sizing: border-box;
+
+        &:focus {
+            outline: none;
+            border-color: @color-focus;
+            box-shadow: 0 0 6px fade(@color-focus, 40%);
+        }
+    }
+}
+
+.emoji-categories {
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-bottom: 1px solid @color-border;
+    overflow-x: auto;
+
+    .category-btn {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        font-size: 1.4rem;
+        padding: 0.25rem 0.35rem;
+        border-radius: @radius;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+            background: fade(@color-accent, 20%);
+        }
+
+        &.active {
+            background: fade(@color-accent, 30%);
+            color: @color-text-active;
+        }
+    }
+}
+
+.emoji-picker {
+    padding: 0.5rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: @color-bg;
+    flex: 1;
+    min-height: 0;
+
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: fade(@color-border, 60%);
+        border-radius: 3px;
+    }
+}
+
+.emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(28px, 1fr));
+    grid-auto-rows: 28px;
+    gap: 0.25rem;
+    justify-items: center;
+
+    .emoji-item {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+        line-height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: @radius;
+        transition: background 0.2s ease, transform 0.1s ease;
+
+        &:hover {
+            background: fade(@color-accent, 20%);
+            transform: scale(1.1);
+        }
+    }
+}
+
+@keyframes slide-in-right {
+    from {
+        transform: translateX(100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes slide-in-left {
+    from {
+        transform: translateX(-100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes slide-in-top {
+    from {
+        transform: translateY(-100%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
+}
+
+@keyframes slide-in-bottom {
+    from {
+        transform: translateY(100%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
+}

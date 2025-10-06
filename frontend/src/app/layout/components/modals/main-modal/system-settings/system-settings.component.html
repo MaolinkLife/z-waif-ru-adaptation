@@ -1,0 +1,257 @@
+<div class="settings-wrapper">
+    <!-- Скелетон, пока данные не загружены -->
+    <ng-container *ngIf="isLoading$ | async; else formContent">
+        <div class="settings-form">
+            <h2><app-skeleton height="2rem" width="150px"></app-skeleton></h2>
+
+            <div class="section">
+                <h3>
+                    <app-skeleton height="1.5rem" width="120px"></app-skeleton>
+                </h3>
+
+                <div class="form-group">
+                    <label
+                        ><app-skeleton
+                            height="1rem"
+                            width="120px"
+                        ></app-skeleton
+                    ></label>
+                    <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+                </div>
+
+                <div class="form-group">
+                    <label
+                        ><app-skeleton
+                            height="1rem"
+                            width="120px"
+                        ></app-skeleton
+                    ></label>
+                    <app-skeleton height="6rem" width="100%"></app-skeleton>
+                </div>
+
+                <div class="form-group">
+                    <label
+                        ><app-skeleton
+                            height="1rem"
+                            width="120px"
+                        ></app-skeleton
+                    ></label>
+                    <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+                </div>
+
+                <div class="form-group">
+                    <label
+                        ><app-skeleton
+                            height="1rem"
+                            width="120px"
+                        ></app-skeleton
+                    ></label>
+                    <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+                </div>
+
+                <div class="form-group">
+                    <label
+                        ><app-skeleton
+                            height="1rem"
+                            width="120px"
+                        ></app-skeleton
+                    ></label>
+                    <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>
+                    <app-skeleton height="1.5rem" width="120px"></app-skeleton>
+                </h3>
+
+                <div class="form-group checkbox-group">
+                    <label
+                        ><app-skeleton
+                            height="1.5rem"
+                            width="100%"
+                        ></app-skeleton
+                    ></label>
+                    <label
+                        ><app-skeleton
+                            height="1.5rem"
+                            width="100%"
+                        ></app-skeleton
+                    ></label>
+                    <label
+                        ><app-skeleton
+                            height="1.5rem"
+                            width="100%"
+                        ></app-skeleton
+                    ></label>
+                    <label
+                        ><app-skeleton
+                            height="1.5rem"
+                            width="100%"
+                        ></app-skeleton
+                    ></label>
+                    <label
+                        ><app-skeleton
+                            height="1.5rem"
+                            width="100%"
+                        ></app-skeleton
+                    ></label>
+                    <label
+                        ><app-skeleton
+                            height="1.5rem"
+                            width="100%"
+                        ></app-skeleton
+                    ></label>
+                    <label
+                        ><app-skeleton
+                            height="1.5rem"
+                            width="100%"
+                        ></app-skeleton
+                    ></label>
+                    <label
+                        ><app-skeleton
+                            height="1.5rem"
+                            width="100%"
+                        ></app-skeleton
+                    ></label>
+                </div>
+            </div>
+
+            <div class="button-row">
+                <app-skeleton height="2.5rem" width="150px"></app-skeleton>
+            </div>
+        </div>
+    </ng-container>
+
+    <ng-template #formContent>
+        <form
+            [formGroup]="systemForm"
+            (ngSubmit)="saveChanges()"
+            class="settings-form"
+        >
+            <h2>⚙️ {{ "settings.systemSettings" | translate }}</h2>
+
+            <div class="section">
+                <h3>{{ "settings.basicConfiguration" | translate }}</h3>
+
+                <div class="form-group">
+                    <label for="char_name">{{
+                        "settings.charName" | translate
+                    }}</label>
+                    <input
+                        id="char_name"
+                        type="text"
+                        formControlName="char_name"
+                        [placeholder]="'settings.charName' | translate"
+                    />
+                </div>
+
+                <div class="form-group">
+                    <label for="system_prompt">{{
+                        "settings.systemPrompt" | translate
+                    }}</label>
+                    <textarea
+                        id="system_prompt"
+                        formControlName="system_prompt"
+                        [placeholder]="
+                            'settings.defineCharacterBehavior' | translate
+                        "
+                        rows="6"
+                    ></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="user_name">{{
+                        "settings.userName" | translate
+                    }}</label>
+                    <input
+                        id="user_name"
+                        type="text"
+                        formControlName="user_name"
+                        [placeholder]="'settings.howToAddressUser' | translate"
+                    />
+                </div>
+
+                <div class="form-group">
+                    <label for="language">{{
+                        "settings.systemLanguage" | translate
+                    }}</label>
+                    <select id="language" formControlName="language">
+                        <option value="en-US">English (US)</option>
+                        <option value="ru-RU">Russian</option>
+                        <option value="ja-JP">Japanese</option>
+                        <option value="zh-CN">Chinese</option>
+                        <option value="es-ES">Spanish</option>
+                        <option value="fr-FR">French</option>
+                        <option value="de-DE">German</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="theme">{{
+                        "settings.theme" | translate
+                    }}</label>
+                    <select
+                        id="theme"
+                        formControlName="theme"
+                        (change)="onThemeChange($event)"
+                    >
+                        <option value="dark">
+                            {{ "settings.theme" | translate }} -
+                            {{ "general.dark" | translate }}
+                        </option>
+                        <option value="light">
+                            {{ "settings.theme" | translate }} -
+                            {{ "general.light" | translate }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>{{ "settings.modules" | translate }}</h3>
+
+                <div class="form-group checkbox-group" formGroupName="modules">
+                    <label>
+                        <input type="checkbox" formControlName="vtube_studio" />
+                        {{ "settings.vtube_studio" | translate }}
+                    </label>
+                    <label>
+                        <input type="checkbox" formControlName="whisper" />
+                        {{ "settings.whisper" | translate }}
+                    </label>
+                    <label>
+                        <input type="checkbox" formControlName="minecraft" />
+                        {{ "settings.minecraft" | translate }}
+                    </label>
+                    <label>
+                        <input type="checkbox" formControlName="gaming" />
+                        {{ "settings.gaming" | translate }}
+                    </label>
+                    <label>
+                        <input type="checkbox" formControlName="alarm" />
+                        {{ "settings.alarm" | translate }}
+                    </label>
+                    <label>
+                        <input type="checkbox" formControlName="discord" />
+                        {{ "settings.discord" | translate }}
+                    </label>
+                    <label>
+                        <input type="checkbox" formControlName="rag" />
+                        {{ "settings.rag" | translate }}
+                    </label>
+                    <label>
+                        <input type="checkbox" formControlName="visual" />
+                        {{ "settings.visual" | translate }}
+                    </label>
+                </div>
+            </div>
+
+            <div class="button-row">
+                <button type="submit" [disabled]="!hasChanges()">
+                    💾 {{ "general.saveSystemSettings" | translate }}
+                </button>
+            </div>
+        </form>
+    </ng-template>
+</div>

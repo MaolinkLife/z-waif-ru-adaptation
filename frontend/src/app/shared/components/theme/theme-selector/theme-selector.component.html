@@ -1,0 +1,12 @@
+<div class="theme-selector">
+    <label for="theme-select">🎨 Тема:</label>
+    <select
+        id="theme-select"
+        [(ngModel)]="currentTheme"
+        (change)="switchTheme(currentTheme)"
+    >
+        <option *ngFor="let theme of themes" [value]="theme">
+            {{ theme | titlecase }}
+        </option>
+    </select>
+</div>

@@ -1,0 +1,99 @@
+// =========================
+// LIM (dark / light)
+// =========================
+
+// LIM DARK (твоя "gold" палитра как пример)
+@lim-dark-bg: #0c0c0d;
+@lim-dark-surface: #1a1a1d;
+@lim-dark-border: #2e2e32;
+@lim-dark-text: #bfbfbf;
+@lim-dark-text-strong: #ffffff;
+@lim-dark-accent: #ffd54f;
+@lim-dark-accent-600: #e6b800;
+
+@lim-dark-btn-bg: #202020;
+@lim-dark-btn-fg: #ffffff;
+
+body.theme-lim-dark {
+    --color-bg: @lim-dark-bg;
+    --color-surface: @lim-dark-surface;
+    --color-border: @lim-dark-border;
+
+    --color-text: @lim-dark-text;
+    --color-text-active: @lim-dark-text-strong;
+
+    --color-accent: @lim-dark-accent;
+    --color-accent-dark: @lim-dark-accent-600;
+
+    /* семантические токены для компонентов */
+    --btn-bg: @lim-dark-btn-bg;
+    --btn-fg: @lim-dark-btn-fg;
+
+    /* добавляй нужные: --header-bg, --sidebar-bg, --card-bg, --input-bg, ... */
+}
+
+// LIM LIGHT (упрощённая референс-палитра)
+@lim-light-bg: #ffffff;
+@lim-light-surface: #f5f6f8;
+@lim-light-border: #dcdcdc;
+@lim-light-text: #333333;
+@lim-light-text-strong: #000000;
+@lim-light-accent: #1976d2;
+@lim-light-accent-600: #1565c0;
+
+@lim-light-btn-bg: #f0f0f0;
+@lim-light-btn-fg: #111111;
+
+body.theme-lim-light {
+    --color-bg: @lim-light-bg;
+    --color-surface: @lim-light-surface;
+    --color-border: @lim-light-border;
+
+    --color-text: @lim-light-text;
+    --color-text-active: @lim-light-text-strong;
+
+    --color-accent: @lim-light-accent;
+    --color-accent-dark: @lim-light-accent-600;
+
+    --btn-bg: @lim-light-btn-bg;
+    --btn-fg: @lim-light-btn-fg;
+}
+
+// =========================
+// MUI (LIGHT) — маппим твои @mui-*
+// =========================
+// Берём ТВОИ значения из предоставленного куска и маппим на общие --color-*
+// Если чего-то нет — просто дописываешь ниже.
+
+@mui-light-bg: #ffffff; // общий фон страницы
+@mui-light-surface: #ecf1f7; // карточки/элементы (можешь поставить @mui-color-card-primary и т.п.)
+@mui-light-border: #e7e8ea;
+
+@mui-light-text: #333;
+@mui-light-text-strong: #000;
+
+@mui-light-accent: @mui-color-primary; // #f2cc60 (у тебя задано)
+@mui-light-accent-hover: @mui-color-primary-hovered; // #ffcc00
+
+@mui-light-btn-bg: @mui-color-secondary; // #ecf1f7
+@mui-light-btn-fg: @mui-color-text; // #333
+
+body.theme-mui-light {
+    --color-bg: @mui-light-bg;
+    --color-surface: @mui-light-surface;
+    --color-border: @mui-light-border;
+
+    --color-text: @mui-light-text;
+    --color-text-active: @mui-light-text-strong;
+
+    --color-accent: @mui-light-accent;
+    --color-accent-dark: @mui-light-accent-hover;
+
+    --btn-bg: @mui-light-btn-bg;
+    --btn-fg: @mui-light-btn-fg;
+
+    /* при необходимости: */
+    --input-bg: @mui-input-color-default; // #ecf1f7
+    --input-bg-hover: @mui-input-color-hover; // #e4ebf3
+    --input-bg-focus: @mui-input-color-focus; // #fff
+}

@@ -1,0 +1,18 @@
+<div class="modal-backdrop" (click)="onBackdropClick()"></div>
+<div class="modal-content" [attr.appearance]="appearance">
+    <div class="modal-header">
+        <span class="modal-title">{{ title }}</span>
+        <button class="close-button" (click)="modalRef.closeModal()">
+            <svg width="20" height="20" viewBox="0 0 20 20">
+                <path
+                    d="M4 4 L16 16 M16 4 L4 16"
+                    stroke="currentColor"
+                    stroke-width="2"
+                />
+            </svg>
+        </button>
+    </div>
+    <div class="modal-body">
+        <ng-template #dynamicComponent></ng-template>
+    </div>
+</div>

@@ -1,0 +1,93 @@
+.mui-button {
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 17px;
+    line-height: 24px;
+    border: 0;
+    outline: 0;
+    position: relative;
+    cursor: pointer;
+    transition: .2s ease-in-out;
+
+
+    &_color {
+        &-primary:hover:not([disabled]) {
+            background-color: var(--mui-color-primary-hovered);
+        }
+
+        &-primary {
+            background-color: var(--mui-color-primary);
+        }
+
+        &-primary[disabled] {
+            opacity: .7;
+        }
+
+        &-success:hover:not([disabled]) {
+            background-color: var(--mui-color-success-hovered);
+            color: var(--mui-color-blank);
+        }
+
+        &-success {
+            background-color: var(--mui-color-success);
+            color: var(--mui-color-blank);
+        }
+
+        &-secondary:hover:not([disabled]) {
+            background-color: var(--mui-color-secondary-hovered);
+        }
+
+        &-secondary {
+            background-color: var(--mui-color-secondary);
+        }
+
+
+        &-error:hover:not([disabled]) {
+            background-color: var(--mui-color-error-hovered);
+        }
+
+        &-error {
+            background-color: var(--mui-color-error);
+            color: var(--mui-color-blank);
+        }
+
+        &-info:hover:not([disabled]) {
+            background-color: var(--mui-color-info-hovered);
+        }
+
+        &-info {
+            background-color: var(--mui-color-info);
+            color: var(--mui-color-blank);
+        }
+    }
+
+    &_size {
+        &-l {
+            // width: 360px;
+            padding: 0 30px;
+            height: 80px;
+        }
+
+        &-m {
+            // width: 240px;
+            padding: 0 20px;
+            height: 60px;
+        }
+
+        &-s {
+            // width: 180px;
+            padding: 0 10px;
+            height: 40px;
+        }
+    }
+}
+
+.mui-button[button-size="l"] {
+    max-width: 280px;
+    height: 60px;
+}
+
+.mui-button[button-size="s"] {
+    max-width: 180px;
+    height: 40px;
+}

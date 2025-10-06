@@ -1,0 +1,72 @@
+mui-wrapper[data-appearance='secondary'],
+mui-wrapper[data-appearance='flat'] {
+    background: var(--mui-secondary);
+    color: var(--mui-link);
+
+    &[data-state='hovered'] {
+        background: var(--mui-secondary-hover);
+        color: var(--mui-link-hover);
+    }
+
+    &[data-state='pressed'] {
+        background: var(--mui-secondary-active);
+    }
+
+    &[data-state='disabled'] {
+        opacity: var(--mui-disabled-opacity);
+    }
+
+    &[data-mode='onDark'] {
+        background: var(--mui-clear-inverse);
+        color: var(--mui-text-01-night);
+        border: 1px solid transparent;
+
+        &[data-state='hovered'] {
+            background: var(--mui-clear-inverse-hover);
+        }
+
+        &[data-state='pressed'] {
+            background: var(--mui-clear-inverse-active);
+        }
+
+        &._focused:after {
+            color: var(--mui-base-01);
+        }
+    }
+
+    &[data-mode='onLight'] {
+        background: var(--mui-clear);
+        color: var(--mui-text-01);
+
+        &[data-state='hovered'] {
+            background: var(--mui-clear-hover);
+        }
+
+        &[data-state='pressed'] {
+            background: var(--mui-clear-active);
+        }
+    }
+
+    &._invalid {
+        color: var(--mui-error-fill);
+        background: var(--mui-error-bg);
+
+        &[data-state='hovered'],
+        &[data-state='pressed'] {
+            background: var(--mui-error-bg-hover);
+        }
+
+        &._focused:after {
+            color: var(--mui-error-fill);
+        }
+    }
+}
+
+mui-wrapper[data-appearance='flat'] {
+    background: transparent;
+
+    &[data-mode='onDark'],
+    &[data-mode='onLight'] {
+        background: transparent;
+    }
+}

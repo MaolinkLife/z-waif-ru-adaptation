@@ -1,0 +1,58 @@
+mui-wrapper[data-appearance='table'] {
+    border-radius: 0;
+    background: transparent;
+    color: var(--mui-text-01);
+
+    &[data-appearance='table']:after {
+        border-width: 1px;
+        color: var(--mui-base-03);
+    }
+
+    &[data-state='hovered']:after {
+        color: var(--mui-base-04);
+    }
+
+    &[data-state='disabled'] {
+        color: var(--mui-text-03);
+    }
+
+    &._focused:after {
+        border-width: 2px;
+        color: var(--mui-focus);
+    }
+
+    &._invalid {
+        background: var(--mui-error-bg);
+
+        &:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            z-index: 1;
+            border-top: 8px solid var(--mui-error-fill);
+            border-left: 8px solid transparent;
+        }
+
+        &[data-state='hovered'] {
+            background: var(--mui-error-bg-hover);
+
+            &._focused {
+                background: transparent;
+            }
+        }
+
+        &[data-state='disabled'] {
+            background: transparent;
+        }
+
+        &._focused {
+            background: transparent;
+
+            &:after {
+                border-width: 1px;
+                color: var(--mui-error-fill);
+            }
+        }
+    }
+}

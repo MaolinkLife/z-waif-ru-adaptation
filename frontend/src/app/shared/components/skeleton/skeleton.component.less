@@ -1,0 +1,29 @@
+.skeleton-base {
+    background: var(--color-border); // ранее #2a2a2a
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.animated {
+    background: linear-gradient(
+        90deg,
+        var(--color-border) 25%,
+        color-mix(in srgb, var(--color-border) 80%, white) 50%,
+        var(--color-border) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.2s infinite linear;
+}
+
+.circle {
+    border-radius: 50%;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
