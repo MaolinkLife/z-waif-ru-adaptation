@@ -127,39 +127,65 @@ class VisionConfig(BaseModel):
 
 class RAGSearchStrategySessionContext(BaseModel):
     enabled: bool = True
-    maxMessages: int = 32
-    lookBackToToday: bool = True
+    max_messages: int = Field(32, alias="maxMessages")
+    look_back_to_today: bool = Field(True, alias="lookBackToToday")
+
+    class Config:
+        allow_population_by_field_name = True
 
 
 class RAGSearchStrategyDailySummary(BaseModel):
     enabled: bool = True
-    lookBackDays: int = 7
-    useTags: bool = True
+    look_back_days: int = Field(7, alias="lookBackDays")
+    use_tags: bool = Field(True, alias="useTags")
+
+    class Config:
+        allow_population_by_field_name = True
 
 
 class RAGSearchStrategyLongTermMemory(BaseModel):
     enabled: bool = True
-    vectorSearch: bool = True
-    graphSearch: bool = True
-    priorityRules: bool = True
+    vector_search: bool = Field(True, alias="vectorSearch")
+    graph_search: bool = Field(True, alias="graphSearch")
+    priority_rules: bool = Field(True, alias="priorityRules")
+
+    class Config:
+        allow_population_by_field_name = True
 
 
 class RAGSearchStrategyFallback(BaseModel):
-    askUser: bool = True
-    autoLearn: bool = True
+    ask_user: bool = Field(True, alias="askUser")
+    auto_learn: bool = Field(True, alias="autoLearn")
+
+    class Config:
+        allow_population_by_field_name = True
 
 
 class RAGSearchStrategy(BaseModel):
-    sessionContext: RAGSearchStrategySessionContext = RAGSearchStrategySessionContext()
-    dailySummary: RAGSearchStrategyDailySummary = RAGSearchStrategyDailySummary()
-    longTermMemory: RAGSearchStrategyLongTermMemory = RAGSearchStrategyLongTermMemory()
+    session_context: RAGSearchStrategySessionContext = Field(
+        default_factory=RAGSearchStrategySessionContext, alias="sessionContext"
+    )
+    daily_summary: RAGSearchStrategyDailySummary = Field(
+        default_factory=RAGSearchStrategyDailySummary, alias="dailySummary"
+    )
+    long_term_memory: RAGSearchStrategyLongTermMemory = Field(
+        default_factory=RAGSearchStrategyLongTermMemory, alias="longTermMemory"
+    )
     fallback: RAGSearchStrategyFallback = RAGSearchStrategyFallback()
+
+    class Config:
+        allow_population_by_field_name = True
 
 
 class RAGMemoryFacts(BaseModel):
     enabled: bool = True
-    priorityRules: List[str] = ["user", "name", "person"]
-    autoUpdate: bool = True
+    priority_rules: List[str] = Field(
+        default_factory=lambda: ["user", "name", "person"], alias="priorityRules"
+    )
+    auto_update: bool = Field(True, alias="autoUpdate")
+
+    class Config:
+        allow_population_by_field_name = True
 
 
 class RAGMemoryGraph(BaseModel):
@@ -175,18 +201,21 @@ class RAGMemory(BaseModel):
 
 class RAGConfig(BaseModel):
     enabled: bool = True
-    embeddingModel: str = "all-MiniLM-L6-v2"
-    vectorDbPath: str = "./data/vector_db"
-    chunkSize: int = 500
-    chunkOverlap: int = 50
-    topK: int = 5
-    similarityThreshold: float = 0.7
-    enableCaching: bool = True
-    cacheTtl: int = 60
-    searchStrategy: RAGSearchStrategy = RAGSearchStrategy()
+    embedding_model: str = Field("all-MiniLM-L6-v2", alias="embeddingModel")
+    vector_db_path: str = Field("./data/vector_db", alias="vectorDbPath")
+    chunk_size: int = Field(500, alias="chunkSize")
+    chunk_overlap: int = Field(50, alias="chunkOverlap")
+    top_k: int = Field(5, alias="topK")
+    similarity_threshold: float = Field(0.7, alias="similarityThreshold")
+    enable_caching: bool = Field(True, alias="enableCaching")
+    cache_ttl: int = Field(60, alias="cacheTtl")
+    search_strategy: RAGSearchStrategy = Field(default_factory=RAGSearchStrategy, alias="searchStrategy")
     memory: RAGMemory = RAGMemory()
     retrieval: Dict[str, Any] = Field(default_factory=dict)
     lore: Dict[str, Any] = Field(default_factory=dict)
+
+    class Config:
+        allow_population_by_field_name = True
 
 
 class AnalyzerProviderOpenRouterConfig(BaseModel):

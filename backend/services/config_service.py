@@ -25,6 +25,110 @@ LEGACY_PATH_MAP = {
 }
 
 
+def _rename_keys(data: Dict[str, Any], mapping: Dict[str, str]) -> None:
+    """
+    Rename keys in-place from camelCase to snake_case while preserving any already-converted values.
+    """
+    for old_key, new_key in mapping.items():
+        if old_key not in data:
+            continue
+        value = data.pop(old_key)
+        data.setdefault(new_key, value)
+
+
+def _normalize_rag_section(config: Dict[str, Any]) -> None:
+    """
+    Normalize the RAG section to snake_case keys to keep backward compatibility
+    with older camelCase configs.
+    """
+    rag = config.get("rag")
+    if not isinstance(rag, dict):
+        return
+
+    _rename_keys(
+        rag,
+        {
+            "embeddingModel": "embedding_model",
+            "vectorDbPath": "vector_db_path",
+            "chunkSize": "chunk_size",
+            "chunkOverlap": "chunk_overlap",
+            "topK": "top_k",
+            "similarityThreshold": "similarity_threshold",
+            "enableCaching": "enable_caching",
+            "cacheTtl": "cache_ttl",
+            "searchStrategy": "search_strategy",
+        },
+    )
+
+    search_strategy = rag.get("search_strategy")
+    if isinstance(search_strategy, dict):
+        _rename_keys(
+            search_strategy,
+            {
+                "sessionContext": "session_context",
+                "dailySummary": "daily_summary",
+                "longTermMemory": "long_term_memory",
+            },
+        )
+
+        session_ctx = search_strategy.get("session_context")
+        if isinstance(session_ctx, dict):
+            _rename_keys(
+                session_ctx,
+                {
+                    "maxMessages": "max_messages",
+                    "lookBackToToday": "look_back_to_today",
+                },
+            )
+
+        daily_summary = search_strategy.get("daily_summary")
+        if isinstance(daily_summary, dict):
+            _rename_keys(
+                daily_summary,
+                {
+                    "lookBackDays": "look_back_days",
+                    "useTags": "use_tags",
+                },
+            )
+
+        long_term_memory = search_strategy.get("long_term_memory")
+        if isinstance(long_term_memory, dict):
+            _rename_keys(
+                long_term_memory,
+                {
+                    "vectorSearch": "vector_search",
+                    "graphSearch": "graph_search",
+                    "priorityRules": "priority_rules",
+                },
+            )
+
+        fallback = search_strategy.get("fallback")
+        if isinstance(fallback, dict):
+            _rename_keys(
+                fallback,
+                {
+                    "askUser": "ask_user",
+                    "autoLearn": "auto_learn",
+                },
+            )
+
+    memory_section = rag.get("memory")
+    if isinstance(memory_section, dict):
+        facts = memory_section.get("facts")
+        if isinstance(facts, dict):
+            _rename_keys(
+                facts,
+                {
+                    "priorityRules": "priority_rules",
+                    "autoUpdate": "auto_update",
+                },
+            )
+
+    # Ensure nested dictionaries exist when snake_case keys were newly created.
+    if "search_strategy" not in rag and "searchStrategy" in config.get("rag", {}):
+        rag["search_strategy"] = rag.pop("searchStrategy")
+
+
 def normalize_config_structure(config: dict | None) -> dict:
     """
     Ensures legacy top-level identity fields live under system section.
@@ -54,6 +158,9 @@ def normalize_config_structure(config: dict | None) -> dict:
             system_section[key] = copy.deepcopy(default_value)
 
     normalized["system"] = system_section
+
+    _normalize_rag_section(normalized)
+
     return normalized
 
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), "..", CONFIG_PATHS["config"])
@@ -390,8 +497,8 @@ def validate_config(config: dict) -> tuple[bool, list]:
         rag = config["rag"]
         if not isinstance(rag, dict):
             errors.append("rag must be an object")
-        elif rag.get("enabled") and not rag.get("embeddingModel"):
-            errors.append("rag.embeddingModel is required when rag is enabled")
+        elif rag.get("enabled") and not rag.get("embedding_model"):
+            errors.append("rag.embedding_model is required when rag is enabled")
 
     return len(errors) == 0, errors
 
