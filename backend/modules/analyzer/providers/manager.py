@@ -6,6 +6,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from services.config_service import get_config_value
 from services.logger_service import AuditStatus, log_audit_entry
+from services.localization_service import get_text
 
 from .base import AnalyzerProvider
 from .openrouter import OpenRouterAnalyzerProvider
@@ -29,8 +30,14 @@ class AnalyzerProviderManager:
             if not provider.is_available():
                 log_audit_entry(
                     "analyzer_provider_unavailable",
-                    f"[Analyzer] Provider '{provider.name}' unavailable.",
+                    get_text(
+                        "analyzer.provider_unavailable",
+                        params={"provider": provider.name},
+                        default=f"[Analyzer] Provider '{provider.name}' unavailable.",
+                    ),
                     AuditStatus.INFO,
+                    message_key="analyzer.provider_unavailable",
+                    message_args={"provider": provider.name},
                 )
                 errors.append(f"{provider.name}_unavailable")
                 continue

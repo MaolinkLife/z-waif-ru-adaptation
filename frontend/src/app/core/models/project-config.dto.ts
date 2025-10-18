@@ -1,8 +1,8 @@
 export interface BaseConfigDto {
-    user_id: string;
-    char_name: string;
-    user_name: string;
-    language: string;
+    user_id?: string;
+    char_name?: string;
+    user_name?: string;
+    language?: string;
 }
 
 export interface VoiceModuleConfigDto {
@@ -72,6 +72,55 @@ export interface VisionConfigDto {
     vision_modules: VisionModuleConfigDto;
 }
 
+export interface RagVectorProfileDto {
+    label?: string;
+    enabled?: boolean;
+    provider?: string;
+    model?: string;
+    top_k?: number;
+    threshold?: number;
+    endpoint?: string;
+    timeout?: number;
+    max_retries?: number;
+    retry_backoff?: number;
+    device?: string;
+}
+
+export interface RagRetrievalDto {
+    recent?: { limit?: number };
+    session?: { enabled?: boolean; window?: string };
+    keyword?: {
+        enabled?: boolean;
+        max_candidates?: number;
+        min_score?: number;
+        min_overlap?: number;
+        boost_user?: number;
+        boost_assistant?: number;
+        stopwords?: string[];
+    };
+    vectors?: {
+        primary?: string;
+        profiles?: Record<string, RagVectorProfileDto>;
+    };
+    short_term?: { enabled?: boolean; threshold?: number };
+    rerank?: {
+        enabled?: boolean;
+        top_n?: number;
+        use_primary_rerank?: boolean;
+        boost_recency?: number;
+        weights?: {
+            embedding?: number;
+            keyword?: number;
+            short_term?: number;
+        };
+    };
+}
+
+export interface RagLoreDto {
+    top_k?: number;
+    similarity_threshold?: number;
+}
+
 export interface RagConfigDto {
     enabled: boolean;
     embedding_model?: string;
@@ -84,6 +133,8 @@ export interface RagConfigDto {
     cache_ttl?: number;
     search_strategy?: any;
     memory?: any;
+    retrieval?: RagRetrievalDto;
+    lore?: RagLoreDto;
 }
 
 export interface AnalyzerProviderConfigDto {
@@ -98,6 +149,24 @@ export interface AnalyzerConfigDto {
     fallback_order: string[];
     providers: {
         [key: string]: AnalyzerProviderConfigDto;
+    };
+}
+
+export interface MoralProviderConfigDto {
+    api_key?: string;
+    model?: string;
+    temperature?: number;
+    max_tokens?: number;
+}
+
+export interface MoralConfigDto {
+    enabled: boolean;
+    active_provider: string;
+    fallback_order: string[];
+    providers: {
+        heuristic?: Record<string, any>;
+        ollama?: MoralProviderConfigDto;
+        openrouter?: MoralProviderConfigDto;
     };
 }
 
@@ -146,11 +215,12 @@ export interface GenerationConfigDto {
 }
 
 export interface SystemConfigDto {
-    user_id: string;
-    user_name: string;
-    char_name: string;
-    system_prompt: string;
-    theme: string;
+    user_id?: string;
+    user_name?: string;
+    char_name?: string;
+    system_prompt?: string;
+    language?: string;
+    theme?: string;
 }
 
 export interface ProjectConfigDto extends BaseConfigDto {
@@ -160,6 +230,7 @@ export interface ProjectConfigDto extends BaseConfigDto {
     vision: VisionConfigDto;
     rag: RagConfigDto;
     analyzer: AnalyzerConfigDto;
+    moral: MoralConfigDto;
     memory: MemoryConfigDto;
     api: ApiConfigDto;
     generate_settings: GenerationConfigDto;

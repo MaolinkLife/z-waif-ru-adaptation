@@ -3,16 +3,28 @@ import { Injectable } from '@angular/core';
 
 export interface MessageBlock {
     id: string;
-    type: 'text' | 'code' | 'thinking' | 'list' | 'header';
+    type:
+        | 'text'
+        | 'code'
+        | 'thinking'
+        | 'list'
+        | 'header'
+        | 'table'
+        | 'quote';
     content: string;
     language?: string;
     isComplete?: boolean;
+    items?: string[];
+    ordered?: boolean;
+    rows?: string[][];
 }
 
 @Injectable({ providedIn: 'root' })
 export class MessageParserService {
     private blockCounter = 0;
     private static readonly THINK_REGEX = /<think>([\s\S]*?)<\/think>/gi;
+    private static readonly TABLE_DIVIDER_REGEX =
+        /^\s*\|?(?:\s*:?-{3,}:?\s*\|)+\s*:?-{3,}:?\s*\|?\s*$/;
 
     parseStreaming(partialContent: string): MessageBlock[] {
         if (!partialContent) {
@@ -53,7 +65,7 @@ export class MessageParserService {
                 const codeContent = partialContent.substring(codeBlockStart);
 
                 if (beforeCode) {
-                    this.extractNonThinkingBlocks(beforeCode, blocks, true);
+                    this.extractStructuredBlocks(beforeCode, blocks, true);
                 }
 
                 const lines = codeContent.split('\n');
@@ -68,21 +80,6 @@ export class MessageParserService {
         return this.parseComplete(partialContent);
     }
 
-    processMarkdown(content: string): string {
-        if (!content) return '';
-
-        const parsed = content
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/__(.*?)__/g, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/g, '<em>$1</em>')
-            .replace(/_(.*?)_/g, '<em>$1</em>')
-            .replace(/~~(.*?)~~/g, '<del>$1</del>')
-            .replace(/`(.*?)`/g, '<code>$1</code>')
-            .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" class="markdown-link">$1</a>')
-            .replace(/\n/g, '<br>');
-        return parsed;
-    }
-
     parseComplete(content: string): MessageBlock[] {
         const blocks: MessageBlock[] = [];
         if (!content) {
@@ -95,7 +92,7 @@ export class MessageParserService {
 
         while ((match = MessageParserService.THINK_REGEX.exec(content)) !== null) {
             const before = content.slice(lastIndex, match.index);
-            this.extractNonThinkingBlocks(before, blocks, true);
+            this.extractStructuredBlocks(before, blocks, true);
 
             const reasoning = match[1].trim();
             if (reasoning) {
@@ -106,12 +103,32 @@ export class MessageParserService {
         }
 
         const remainder = content.slice(lastIndex);
-        this.extractNonThinkingBlocks(remainder, blocks, true);
+        this.extractStructuredBlocks(remainder, blocks, true);
 
         return blocks.length ? blocks : [this.createBlock('text', content.trim(), true)];
     }
 
-    private extractNonThinkingBlocks(segment: string, blocks: MessageBlock[], isComplete: boolean): void {
+    private isHeader(line: string): boolean {
+        return /^#{1,6}\s+/.test(line.trim());
+    }
+
+    private isUnorderedList(line: string): boolean {
+        return /^\s*[\*\-\+]\s+/.test(line);
+    }
+
+    private isOrderedList(line: string): boolean {
+        return /^\s*\d+[\.\)]\s+/.test(line);
+    }
+
+    private isBlockquote(line: string): boolean {
+        return /^\s*>+\s*/.test(line);
+    }
+
+    private isTableRow(line: string): boolean {
+        return /\|/.test(line);
+    }
+
+    private extractStructuredBlocks(segment: string, blocks: MessageBlock[], isComplete: boolean): void {
         if (!segment || !segment.trim()) {
             return;
         }
@@ -122,106 +139,149 @@ export class MessageParserService {
 
         while ((match = codeRegex.exec(segment)) !== null) {
             if (match.index > lastIndex) {
-                const textContent = segment.slice(lastIndex, match.index).trim();
-                if (textContent) {
-                    this.addTextBlocks(blocks, textContent, isComplete);
-                }
+                const textContent = segment.slice(lastIndex, match.index);
+                this.splitRichTextBlocks(textContent, blocks, isComplete);
             }
 
-            blocks.push(this.createBlock('code', match[2].trim(), isComplete, match[1] || 'plaintext'));
+            blocks.push(
+                this.createBlock(
+                    'code',
+                    match[2],
+                    isComplete,
+                    match[1] ? match[1].trim() : 'plaintext'
+                )
+            );
             lastIndex = codeRegex.lastIndex;
         }
 
         if (lastIndex < segment.length) {
-            const remainingText = segment.slice(lastIndex).trim();
-            if (remainingText) {
-                this.addTextBlocks(blocks, remainingText, isComplete);
-            }
+            const remainingText = segment.slice(lastIndex);
+            this.splitRichTextBlocks(remainingText, blocks, isComplete);
         }
     }
 
-    private addTextBlocks(blocks: MessageBlock[], content: string, isComplete: boolean): void {
-        if (!content) {
-            return;
-        }
+    private splitRichTextBlocks(content: string, blocks: MessageBlock[], isComplete: boolean): void {
+        const lines = content.split(/\r?\n/);
+        const paragraphBuffer: string[] = [];
 
-        const lines = content.split('\n');
-        let currentParagraph = '';
+        const flushParagraph = () => {
+            if (paragraphBuffer.length === 0) {
+                return;
+            }
+            const paragraph = paragraphBuffer.join('\n').trim();
+            if (paragraph) {
+                blocks.push(this.createBlock('text', paragraph, isComplete));
+            }
+            paragraphBuffer.length = 0;
+        };
 
-        for (const line of lines) {
+        let i = 0;
+        while (i < lines.length) {
+            const line = lines[i];
+            const trimmed = line.trim();
+            if (!trimmed) {
+                flushParagraph();
+                i++;
+                continue;
+            }
+
+            // Table detection
+            if (
+                this.isTableRow(line) &&
+                i + 1 < lines.length &&
+                MessageParserService.TABLE_DIVIDER_REGEX.test(lines[i + 1].trim())
+            ) {
+                flushParagraph();
+                const headerLine = lines[i];
+                const tableRows: string[][] = [this.parseTableRow(headerLine)];
+                i += 2;
+                while (i < lines.length && this.isTableRow(lines[i])) {
+                    tableRows.push(this.parseTableRow(lines[i]));
+                    i++;
+                }
+                blocks.push(
+                    this.createBlock('table', '', isComplete, undefined, {
+                        rows: tableRows,
+                    })
+                );
+                continue;
+            }
+
+            // Heading
             if (this.isHeader(line)) {
-                if (currentParagraph.trim()) {
-                    blocks.push({
-                        id: `text-${this.blockCounter++}`,
-                        type: 'text',
-                        content: this.processMarkdown(currentParagraph.trim()),
-                        isComplete
-                    });
-                    currentParagraph = '';
-                }
-                blocks.push({
-                    id: `header-${this.blockCounter++}`,
-                    type: 'header',
-                    content: line.trim().replace(/^#+\s*/, ''),
-                    isComplete
-                });
-            } else if (this.isListItem(line)) {
-                if (currentParagraph.trim()) {
-                    blocks.push({
-                        id: `text-${this.blockCounter++}`,
-                        type: 'text',
-                        content: this.processMarkdown(currentParagraph.trim()),
-                        isComplete
-                    });
-                    currentParagraph = '';
-                }
-                blocks.push({
-                    id: `list-${this.blockCounter++}`,
-                    type: 'list',
-                    content: line.trim().replace(/^[\*\-\+]\s*/, ''),
-                    isComplete
-                });
-            } else {
-                currentParagraph += line + '\n';
+                flushParagraph();
+                blocks.push(
+                    this.createBlock('header', line.trim().replace(/^#{1,6}\s*/, ''), isComplete)
+                );
+                i++;
+                continue;
             }
-        }
 
-        if (currentParagraph.trim()) {
-            blocks.push({
-                id: `text-${this.blockCounter++}`,
-                type: 'text',
-                content: this.processMarkdown(currentParagraph.trim()),
-                isComplete
-            });
+            // List
+            if (this.isUnorderedList(line) || this.isOrderedList(line)) {
+                const ordered = this.isOrderedList(line);
+                flushParagraph();
+                const items: string[] = [];
+                while (
+                    i < lines.length &&
+                    ((ordered && this.isOrderedList(lines[i])) ||
+                        (!ordered && this.isUnorderedList(lines[i])))
+                ) {
+                    const item = ordered
+                        ? lines[i].replace(/^\s*\d+[\.\)]\s+/, '')
+                        : lines[i].replace(/^\s*[\*\-\+]\s+/, '');
+                    items.push(item.trim());
+                    i++;
+                }
+                blocks.push(
+                    this.createBlock('list', '', isComplete, undefined, {
+                        items,
+                        ordered,
+                    })
+                );
+                continue;
+            }
+
+            // Blockquote
+            if (this.isBlockquote(line)) {
+                flushParagraph();
+                const parts: string[] = [];
+                while (i < lines.length && this.isBlockquote(lines[i])) {
+                    parts.push(lines[i].replace(/^\s*>+\s?/, ''));
+                    i++;
+                }
+                blocks.push(
+                    this.createBlock('quote', parts.join('\n').trim(), isComplete)
+                );
+                continue;
+            }
+
+            paragraphBuffer.push(line);
+            i++;
         }
+        flushParagraph();
     }
 
-    private isHeader(line: string): boolean {
-        return /^#{1,6}\s+/.test(line.trim());
-    }
-
-    private isListItem(line: string): boolean {
-        return /^[\*\-\+]\s+/.test(line.trim());
+    private parseTableRow(line: string): string[] {
+        const cleaned = line.trim().replace(/^\|/, '').replace(/\|$/, '');
+        return cleaned.split('|').map((cell) => cell.trim());
     }
 
     private createBlock(
         type: MessageBlock['type'],
         content: string,
         isComplete: boolean,
-        language?: string
+        language?: string,
+        extras: Partial<MessageBlock> = {}
     ): MessageBlock {
-        const trimmed = content.trim();
-        const processedContent =
-            type === 'text' || type === 'thinking'
-                ? this.processMarkdown(trimmed)
-                : trimmed;
-
         return {
             id: `${type}-${this.blockCounter++}`,
             type,
-            content: processedContent,
+            content: content,
             language,
-            isComplete
+            isComplete,
+            ...extras,
         };
     }
 }
+

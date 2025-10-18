@@ -12,7 +12,7 @@ from utils.open_file_w_utf8 import open_utf8
 
 def load_system_prompt() -> str:
     base_path = os.path.join(os.path.dirname(__file__), "..", "config", "characters")
-    char_name = get_config_value("char_name", default="default")
+    char_name = get_config_value("system.char_name", default="default")
     filename = f"{char_name}.yaml"
     full_path = os.path.join(base_path, filename)
     fallback_path = os.path.join(base_path, "default.yaml")

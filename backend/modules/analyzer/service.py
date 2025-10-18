@@ -22,6 +22,21 @@ class AnalyzerModule:
         content = (input_raw.get("content") or "").strip()
         message_meta = self._build_message_meta(input_raw)
 
+        log_audit_entry(
+            "analyzer_request_start",
+            "[Analyzer] Получен запрос на анализ.",
+            AuditStatus.INFO,
+            details={
+                "message_id": message_meta.get("message_id"),
+                "media_count": message_meta.get("media_count"),
+                "has_content": bool(content),
+            },
+        )
+        print(
+            "[Analyzer] Запуск анализа:",
+            f"id={message_meta.get('message_id')} length={len(content)}",
+        )
+
         if not content:
             log_audit_entry(
                 "analyzer_empty_content",
@@ -34,17 +49,47 @@ class AnalyzerModule:
         result, provider_name, errors = await self.provider_manager.analyze(
             content, message_meta
         )
+        provider_name = provider_name or self._default_provider_name
 
         if result:
+            log_audit_entry(
+                "analyzer_result_success",
+                "[Analyzer] Анализ выполнен успешно.",
+                AuditStatus.SUCCESS,
+                details={
+                    "provider": provider_name,
+                    "errors": errors,
+                    "message_id": message_meta.get("message_id"),
+                    "dominant_tone": result.get("input_analysis", {})
+                    .get("emotional_tone", {})
+                    .get("primary"),
+                    "metadata": result,
+                },
+            )
+            print(
+                "[Analyzer] Успешный анализ:",
+                f"provider={provider_name} errors={errors}",
+                f"summary={result.get('input_analysis', {}).get('intent_analysis')}",
+            )
             return {
                 "metadata": result,
-                "provider": provider_name or self._default_provider_name,
+                "provider": provider_name,
                 "errors": errors,
                 "message_meta": message_meta,
             }
 
         errors.append("all_providers_failed")
         metadata = self._build_default_metadata(content)
+        log_audit_entry(
+            "analyzer_result_fallback",
+            "[Analyzer] Все провайдеры анализа отказали, используем дефолт.",
+            AuditStatus.ERROR,
+            details={
+                "provider_chain_errors": errors,
+                "message_id": message_meta.get("message_id"),
+            },
+        )
+        print("[Analyzer] Провал анализа, возвращаю дефолтные метаданные.", errors)
         return {
             "metadata": metadata,
             "provider": self._default_provider_name,

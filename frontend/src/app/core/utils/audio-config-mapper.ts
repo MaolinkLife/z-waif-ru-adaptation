@@ -14,16 +14,44 @@ export const mapAudioDtoToModel = (dto: any) => ({
     ignoreTriggerWords: dto.ignore_trigger_words,
 });
 
-export const mapAudioModelToDto = (audio: ProjectConfig['audio']) => ({
-    input_device_id: audio.inputDeviceId,
-    sample_rate: audio.sampleRate,
-    channels: audio.channels,
-    chunk_size: audio.chunkSize,
-    enable_vad: audio.enableVad,
-    vad_threshold: audio.vadThreshold,
-    silence_timeout: audio.silenceTimeout,
-    min_audio_length: audio.minAudioLength,
-    max_audio_length: audio.maxAudioLength,
-    trigger_words: audio.triggerWords,
-    ignore_trigger_words: audio.ignoreTriggerWords,
-});
+export const mapAudioModelToDto = (
+    audio: ProjectConfig['audio'] | Partial<ProjectConfig['audio']>
+) => {
+    const dto: Record<string, any> = {};
+
+    if (audio.inputDeviceId !== undefined) {
+        dto.input_device_id = audio.inputDeviceId;
+    }
+    if (audio.sampleRate !== undefined) {
+        dto.sample_rate = audio.sampleRate;
+    }
+    if (audio.channels !== undefined) {
+        dto.channels = audio.channels;
+    }
+    if (audio.chunkSize !== undefined) {
+        dto.chunk_size = audio.chunkSize;
+    }
+    if (audio.enableVad !== undefined) {
+        dto.enable_vad = audio.enableVad;
+    }
+    if (audio.vadThreshold !== undefined) {
+        dto.vad_threshold = audio.vadThreshold;
+    }
+    if (audio.silenceTimeout !== undefined) {
+        dto.silence_timeout = audio.silenceTimeout;
+    }
+    if (audio.minAudioLength !== undefined) {
+        dto.min_audio_length = audio.minAudioLength;
+    }
+    if (audio.maxAudioLength !== undefined) {
+        dto.max_audio_length = audio.maxAudioLength;
+    }
+    if (audio.triggerWords !== undefined) {
+        dto.trigger_words = audio.triggerWords;
+    }
+    if (audio.ignoreTriggerWords !== undefined) {
+        dto.ignore_trigger_words = audio.ignoreTriggerWords;
+    }
+
+    return dto;
+};

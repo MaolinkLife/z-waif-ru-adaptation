@@ -69,7 +69,7 @@ async def apply_preset(request: Request):
 
 @router.get("/system")
 def get_system_info():
-    char_name = get_config_value("char_name", "default_waifu")
+    char_name = get_config_value("system.char_name", "default_waifu")
     try:
         prompt = get_character_prompt(char_name)
     except FileNotFoundError:
@@ -89,13 +89,13 @@ async def update_system_info(request: Request):
 
     # Если char_name не передан — берем из конфига
     if not char_name:
-        char_name = get_config_value("char_name", "default_waifu")
+        char_name = get_config_value("system.char_name", "default_waifu")
 
     # Обновляем YAML и БД
     save_character_prompt(char_name, prompt)
 
     # Обновляем char_name в конфиге, если передан
     if data.get("char_name"):
-        set_config_value("char_name", char_name)
+        set_config_value("system.char_name", char_name)
 
     return {"status": "ok", "message": f"System prompt for '{char_name}' updated."}

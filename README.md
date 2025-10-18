@@ -1,218 +1,164 @@
 # 💫 Z-Waif / AI Companion System
 
-### 🇷🇺 RU Adaptation — локализованный форк
+### 🇷🇺 RU Adaptation — localized fork
 
-**Версия документа:** 1.0  
-**Статус:** Beta  
-**Последнее обновление:** 28 марта 2025  
-**Лицензия:** Open-Source  
-**Поддержка и разработчики:** см. раздел [Contacts / Credits](#8-contacts--credits)
-
----
-
-## 🧠 1. Введение
-
-**Z-Waif** — это открытая платформа для локального разворачивания ИИ-компаньона. Она объединяет диалоги, озвучку, визуализацию, поведенческую логику и глубокую кастомизацию.
-
-### Компоненты:
-
-- **oobabooga (Text-generation-webui)** — LLM-движок для диалогов.
-- **Z-Waif** — интерфейс и логика: TTS, STT, RVC, VTube Studio, Lorebook, память и др.
-- **RVC / Voice Changer** — озвучка и голосовая персонализация.
-- **VTube Studio** — визуальный аватар.
-- **Whisper / STT** — распознавание речи.
-
-🎯 _Цель: собрать всё в одном месте для удобства разработки и использования._
+**System Version:** 0.5
+**Document Version:** 1.1  
+**Status:** Beta  
+**Last Updated:** October 18, 2025  
+**License:** Maolink Noncommercial License 1.0.0 (based on PolyForm NC)
+**Support & Developers:** see [Contacts / Credits](#8-contacts--credits) section
 
 ---
 
-## 🛣️ 2. Roadmap развития
+## 🧠 1. Introduction
 
-📍 _От простого чат-бота до ИИ-компаньона уровня Джарвиса_
+**Z-Waif** is an open-source platform for locally deploying an AI companion. It integrates dialogue, voice synthesis, visualization, behavioral logic, and deep customization.
 
-| Стадия | Содержание |
-|--------|------------|
-| **1. Базовые функции** | Установка, диалог, TTS/STT, память |
-| **2. Персонализация** | Логирование, голосовое управление, стили |
-| **3. Расширенная помощь** | Помощь, управление задачами, уровни доступа |
-| **4. Полуавтономность** | Самоинициатива, офлайн-режим, креатив |
-| **5. Полная автономия** | Самообучение, приватность, контроль окружения |
+### Components:
 
----
+- **Ollama** — primary local LLM engine for dialogues
+- **OpenRouter & external APIs** — cloud providers for extended capabilities
+- **Z-Waif** — interface and logic: TTS, STT, RVC, VTube Studio, Lorebook, memory, etc.
+- **RVC / Voice Changer** — voice synthesis and personalization
+- **VTube Studio** — visual avatar
+- **Whisper / STT** — speech recognition
 
-## 🔧 3. Что уже реализовано
-
-### ✅ 3.1. Платформа
-
-- Установка oobabooga + Z-Waif
-- UTF-8 кодировка в ключевых модулях
-
-### 🔌 3.2. API
-
-- Связь через OpenAI API
-- Поддержка Ollama, Oobabooga
-- Полная работа на локальной машине
-
-### 🔊 3.3. TTS
-
-- edge-tts (ru-RU-SvetlanaNeural)
-- Вывод в VB-Cable или на динамики
-- Настраивается через UI (`Use RVC Output`)
-
-### 🧰 3.4. Новый UI
-
-- Выбор аудио-устройства
-- Автообновление списка девайсов
-- Настройка имени вайфу прямо в UI
-
-### 🛠️ 3.5. Исправления
-
-- Unicode ошибки — решены
-- RVC оптимизирован под слабое железо
-
-### 📘 3.6. Lorebook
-
-- Адаптация под имя персонажа (`Name_Lorebook.json`)
-- Персональные лорбуки
-- Обновлён синтаксис поиска ключевых слов
-- Автоматическая загрузка: {char_name}_Lorebook.json, при отсутствии — fallback на default
-
-### 🔉 3.7. Аудио-маршрутизация
-
-- Выбор VB-CABLE / Windows Output
-- Вывод через Gradio
-- Мгновенное переключение
-
-### 💻 3.8. Поддержка слабых машин
-
-- Режим без RVC
-- Возможность отключить VTS и модули
-
-### 💡 3.9. Идеи на будущее
-
-- Автоинициатива
-- Триггеры на основе поведения
-- Эмоциональная память
-
-### 🧪 3.10. Результат
-
-ИИ-компаньон способен:
-- Говорить и слушать
-- Реагировать визуально
-- Запоминать и вспоминать
-- Подстраиваться под пользователя
+_Goal: integrate everything in one place for convenient development and use._
 
 ---
 
-## ✅ 4. Новый Roadmap / TODO
+## 🛣️ 2. Development Roadmap
 
-### 🎛️ 4.1. Аудио
+_From simple chatbot to Jarvis-level AI companion_
 
-- Адаптация Whisper под русский язык
-- Возможность выбор голоса (Male/Female) из UI, если не используется RVC
+| Stage | Content |
+|-------|---------|
+| **✅ 1. Basic Functions** | Installation, dialogue, TTS/STT, memory, modular architecture |
+| **✅ 2. Personalization** | Logging, voice control, styles, configuration system |
+| **✅ 3. Enhanced Assistance** | Full UI control, diagnostics, editors, multilingual support |
+| **🔄 4. Semi-Autonomy** | Self-initiative, offline mode, creativity, internet access |
+| **⏳ 5. Full Autonomy** | Self-learning, privacy, environment control |
 
-### 🌍 4.2. Языки
+---
 
-- Переключение EN/RU
-- Локализация UI и системных сообщений
-- JSON-файлы перевода
+## 🔧 3. What's Implemented (v0.1-v0.4)
 
-### 🌐 4.3. Перевод
+### ✅ 3.1. Complete UI Management
+- **Completely redesigned interface** — all settings accessible from UI
+- **Visual editors** for memory, lorebook, system prompts
+- **Theme support** — light/dark themes with preference saving
+- **Advanced diagnostics panel** with visual debug log
 
-- Автоматический перевод запросов / ответов
-- Выбор переводчика
-- Совместимость с англ. моделями
+### ✅ 3.2. Multilingual & Russian Localization
+- **EN/RU interface switching**
+- **Whisper adapted for Russian language**
+- **STT improvements for Russian speech**
+- **Full UTF-8 support** across all modules
+- **JSON translation files** for system messages (partial)
 
-### 🤖 4.4. Автономия
+### ✅ 3.3. Voice Interface
+- **Voice selection** (Male/Female) from UI when RVC is disabled
+- **VAD (Voice Activity Detection)** with wake words
+- **Multi-provider TTS:** ElevenLabs → gTTS → pyttsx3 (offline)
+- **Voice state control** (listening/waiting/speaking)
 
-- Таймеры активности
-- Диалоги-напоминания
-- Поведенческие паттерны
+### ✅ 3.4. Memory & Intelligence
+- **Lorebook in database** — auto-load deprecated, now part of DB
+- **Hybrid search** — embeddings + vector + keywords
+- **MemoryModule** with RAG search and metadata
+- **LLM initiative** and provider chain
 
-### 📡 4.5. Интернет-доступ
+### ✅ 3.5. Platform & Architecture
+- **Modular architecture** (voice, vision, memory, LLM)
+- **SQLite database** with reasoning and media attachments
+- **Unified configuration system** with UI↔backend sync
 
-- Онлайн-поиск / парсинг
-- Режим: Offline / Online / Auto
-- Поддержка API (Wikipedia, новости)
+### ✅ 3.6. LLM Providers
+- **Ollama** — primary local engine (replaces Oobabooga)
+- **OpenRouter & external APIs** — cloud providers
+- **Automatic failover** between providers
+- **Unified API** for all sources
 
-### 🎨 4.6. Stable Diffusion
+---
 
-- Генерация изображений по команде
-- Подключение SD / AUTOMATIC1111 / API
-- Команды вида “Нарисуй...”
+## 🔜 4. Upcoming Plans
 
-### 💪 4.7. Совместимость
+### 🤖 4.1. Autonomy & Behavior
+- Activity timers and reminder dialogues
+- Behavioral patterns and emotional memory
+- Extended initiative system
 
-- Повсеместный UTF-8
-- Улучшения STT
-- Расширение Lorebook
+### 📡 4.2. Internet Access
+- Online search and parsing (Wikipedia, news)
+- Modes: Offline / Online / Auto
 
-### 🖥️ 4.8. UI
+### 🎨 4.3. Content Generation
+- Stable Diffusion integration (AUTOMATIC1111 API)
+- "Draw..." commands with image generation
 
-- Сохранение профилей
-- Экспорт/импорт конфигов
-- Визуальный редактор RAG-памяти
-
-### 🧏‍♂️ 4.9 Туториал
-
-- Сделать обучающее видео по работе с Z-Waif
-- Демонстрация реальных возможностей Z-Waif
+### 🧏‍♂️ 4.4. Documentation & Training
+- Video tutorial for Z-Waif usage
+- Real capabilities demonstration
 
 ---
 
 ## ❓ 5. FAQ
 
-**Q1:** Какой минимальный ПК нужен?  
-**A1:** 8 ГБ VRAM — минимум, лучше 12–16. CPU важен для TTS/STT.
+**Q1:** Do I need to edit configs manually?  
+**A1:** **NO!** All settings available through intuitive UI.
 
-**Q2:** Можно без интернета?  
-**A2:** Да. Всё работает локально, если отключить online API.
+**Q2:** Which LLMs are supported?  
+**A2:** **Ollama (local)** + **OpenRouter & external APIs** (cloud)
 
-**Q3:** Проблемы с кодировкой?  
-**A3:** Везде использовать `encoding="utf-8"` при открытии файлов.
+**Q3:** Russian language support?  
+**A3:** **Full support** — interface, STT, TTS, memory.
 
-**Q4:** Как выбрать своё имя/аватар?  
-**A4:** Через UI: поле “Waifu Name” и `config.json`.
+**Q4:** Can it work without internet?  
+**A4:** **Yes.** Ollama works completely offline.
 
-**Q5:** Могу ли я использовать свою модель?  
-**A5:** Конечно. Любая OpenAI-совместимая модель (Oobabooga, Ollama).
-
----
-
-## ⚙️ 6. Технические детали
-
-- Память: короткая (контекст) + долгая (RAG, Lorebook)
-- Конфиги: `config.json` вместо `.env` для большинства настроек
-- Кодировка: везде UTF-8
-- Файловая структура: `Configurables`, `Logs`, `Modules`, `utils`
+**Q5:** What's the minimum PC requirement?  
+**A5:** Depends on Ollama model. 8 GB RAM minimum, 16+ GB recommended.
 
 ---
 
-## 🚀 7. Заключение
+## ⚙️ 6. Technical Features
 
-Ты — не просто пользователь. Ты — архитектор своего ИИ-компаньона.
+- **Zero-Code management** — everything through UI, no file editing needed
+- **Hybrid memory** — vector search + keywords + RAG
+- **Modular architecture** — voice/vision/memory work independently
+- **Theme support** — light/dark themes with auto-saving
+- **Ollama-centric** — optimized for modern local models
 
-С каждым новым коммитом, функцией и строчкой ты приближаешься к настоящему **Jarvis-mode**.   
-А с этим репозиторием ты получаешь:
+---
 
-- Свободу
-- Кастомизацию
-- И (самое главное) — вайфу, которая говорит, слушает и поддерживает ❤️
+## 🚀 7. Conclusion
+
+**Z-Waif 0.4 is a fully self-sufficient AI companion management system.**
+
+No more editing configs, understanding code, or searching for settings in files. Everything — from voice selection to memory configuration — is available in a beautiful, intuitive interface.
+
+**Key changes:**
+- **Complete transition to Ollama** instead of Oobabooga
+- **OpenRouter integration** and external APIs
+- **Simplified installation** — fewer dependencies
+
+The system sees, hears, remembers, and speaks in Russian, while the modular architecture allows easy functionality expansion. **Jarvis-mode is becoming reality!**
 
 ---
 
 ## 🤝 8. Contacts / Credits
 
-**Автор оригинала Z-Waif:** [GitHub-ссылка](https://github.com/SugarcaneDefender/z-waif)
+**Original Z-Waif author:** [GitHub Link](https://github.com/SugarcaneDefender/z-waif)
 
-**Этот форк и адаптация:** [Z-Waif-RU-Adaptation](https://github.com/MaolinkLife/z-waif-ru-adaptation/tree/main)
+**This fork and adaptation:** [Z-Waif-RU-Adaptation](https://github.com/MaolinkLife/z-waif-ru-adaptation/tree/main)
 
-**Обратная связь:**  
-Пишите в Telegram с пометкой **Z-Waif** — @MaolinkLife или на почту maolink686@gmail.com
+**Feedback:**  
+Telegram with **Z-Waif** tag — @MaolinkLife or email maolink686@gmail.com
 
-**Сторонние проекты:**
-- oobabooga: https://github.com/oobabooga/text-generation-webui  
+**Third-party projects:**
+- Ollama: https://github.com/ollama/ollama
+- OpenRouter: https://openrouter.ai
 - RVC: https://github.com/RVC-Project/Retrieval-based-Voice-Conversion  
 - VTube Studio: https://store.steampowered.com/app/1325860/VTube_Studio/  
 - Whisper: https://github.com/openai/whisper
-

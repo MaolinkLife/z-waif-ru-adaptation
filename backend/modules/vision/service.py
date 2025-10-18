@@ -58,6 +58,7 @@ class VisionService:
                 "vision_no_frames",
                 f"[Vision] No frames in {seconds}s",
                 AuditStatus.INFO,
+                message_args={"seconds": seconds},
             )
             return {
                 "timestamp": datetime.utcnow().isoformat() + "Z",
@@ -107,15 +108,20 @@ class VisionService:
             try:
                 yolo_list = self.analyzer.detect_objects_yolo(last_frame) or []
                 yolo_summary = self.analyzer.summarize_yolo_detections(yolo_list)
+                detection_count = len(yolo_list)
                 log_audit_entry(
                     "vision_yolo_detected" if yolo_list else "vision_yolo_empty",
-                    f"[Vision] YOLO: {len(yolo_list)} detections",
+                    f"[Vision] YOLO: {detection_count} detections",
                     AuditStatus.INFO,
                     details={"detections": yolo_list[:10]},
+                    message_args={"count": detection_count},
                 )
             except Exception as e:
                 log_audit_entry(
-                    "vision_yolo_error", f"[Vision] YOLO error: {e}", AuditStatus.ERROR
+                    "vision_yolo_error",
+                    f"[Vision] YOLO error: {e}",
+                    AuditStatus.ERROR,
+                    message_args={"error": str(e)},
                 )
 
         scene_change = None
@@ -132,10 +138,14 @@ class VisionService:
                     f"[Vision] SSIM={ssim_value:.6f}, drop={1.0 - ssim_value:.6f}",
                     AuditStatus.INFO,
                     details=scene_change,
+                    message_args={"ssim": ssim_value, "drop": 1.0 - ssim_value},
                 )
             except Exception as e:
                 log_audit_entry(
-                    "vision_ssim_error", f"[Vision] SSIM error: {e}", AuditStatus.ERROR
+                    "vision_ssim_error",
+                    f"[Vision] SSIM error: {e}",
+                    AuditStatus.ERROR,
+                    message_args={"error": str(e)},
                 )
 
             try:
@@ -145,6 +155,7 @@ class VisionService:
                     "vision_optical_flow_error",
                     f"[Vision] Flow error: {e}",
                     AuditStatus.ERROR,
+                    message_args={"error": str(e)},
                 )
 
         top_lines = [b["text"] for b in text_blocks if b.get("text")]
@@ -204,6 +215,7 @@ class VisionService:
             f"[Vision] OK: conf={confidence:.2f}",
             AuditStatus.INFO,
             details=result,
+            message_args={"confidence": confidence},
         )
         return result
 
@@ -271,6 +283,7 @@ def _maybe_save_debug_frame(frame):
             "vision_debug_save_error",
             f"[Vision] Failed to save debug frame: {e}",
             AuditStatus.ERROR,
+            message_args={"error": str(e)},
         )
 
 

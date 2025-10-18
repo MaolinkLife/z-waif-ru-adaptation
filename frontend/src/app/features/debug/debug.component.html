@@ -53,11 +53,11 @@
             <span class="timestamp">
                 {{ log.timestamp | date : "dd.MM.yyyy HH:mm:ss" }}
             </span>
-            <span class="tags-inline" *ngIf="log.tags?.length">
+            <!-- <span class="tags-inline" *ngIf="log.tags?.length">
                 <span class="mini-tag" *ngFor="let t of log.tags"
                     >[{{ t }}]</span
                 >
-            </span>
+            </span> -->
         </div>
 
         <div class="log-body">

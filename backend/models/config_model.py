@@ -16,6 +16,7 @@ class SystemConfig(BaseModel):
     user_id: Optional[str] = None
     user_name: str = "You"
     char_name: str = "Character Name"
+    language: str = "en-US"
     system_prompt: str = ""  # будет подтягиваться из characters/{char_name}.yaml
     theme: str = "default"
 
@@ -184,6 +185,8 @@ class RAGConfig(BaseModel):
     cacheTtl: int = 60
     searchStrategy: RAGSearchStrategy = RAGSearchStrategy()
     memory: RAGMemory = RAGMemory()
+    retrieval: Dict[str, Any] = Field(default_factory=dict)
+    lore: Dict[str, Any] = Field(default_factory=dict)
 
 
 class AnalyzerProviderOpenRouterConfig(BaseModel):
@@ -208,6 +211,32 @@ class AnalyzerConfig(BaseModel):
     active_provider: str = "openrouter"
     fallback_order: List[str] = ["ollama"]
     providers: AnalyzerProvidersConfig = AnalyzerProvidersConfig()
+
+
+class MoralProviderOllamaConfig(BaseModel):
+    model: str = "llama3.2"
+    temperature: float = DEFAULT_TEMPERATURE
+    max_tokens: int = 512
+
+
+class MoralProviderOpenRouterConfig(BaseModel):
+    api_key: str = ""
+    model: str = "openai/gpt-4o-mini"
+    temperature: float = DEFAULT_TEMPERATURE
+    max_tokens: int = 512
+
+
+class MoralProvidersConfig(BaseModel):
+    heuristic: Dict[str, Any] = Field(default_factory=dict)
+    ollama: MoralProviderOllamaConfig = MoralProviderOllamaConfig()
+    openrouter: MoralProviderOpenRouterConfig = MoralProviderOpenRouterConfig()
+
+
+class MoralMatrixConfig(BaseModel):
+    enabled: bool = True
+    active_provider: str = "ollama"
+    fallback_order: List[str] = Field(default_factory=lambda: ["openrouter", "heuristic"])
+    providers: MoralProvidersConfig = MoralProvidersConfig()
 
 
 class MemoryConfig(BaseModel):
@@ -269,11 +298,6 @@ class GenerateSettingsConfig(BaseModel):
 class AppConfig(BaseModel):
     system: SystemConfig = SystemConfig()
     core: CoreConfig = CoreConfig()
-    user_id: Optional[str] = None
-    char_name: str = "Character Name"
-    user_name: str = "You"
-
-    language: str = "en-US"
     voice: "VoiceConfig" = None
     stt: "STTConfig" = None
     modules: "ModulesConfig" = None
@@ -281,6 +305,7 @@ class AppConfig(BaseModel):
     vision: "VisionConfig" = None
     rag: "RAGConfig" = None
     analyzer: "AnalyzerConfig" = None
+    moral: "MoralMatrixConfig" = None
     memory: "MemoryConfig" = None
     api: "APIConfig" = None
     generate_settings: "GenerateSettingsConfig" = None

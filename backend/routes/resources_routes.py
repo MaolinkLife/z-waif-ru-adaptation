@@ -1,4 +1,5 @@
 # routes/resources_routes.py (updated)
+import asyncio
 import edge_tts
 import re
 from fastapi import APIRouter
@@ -9,8 +10,11 @@ from services.monitor_service import (
     get_monitor_screens,
     get_monitor_info,
 )  # Add import
+from services.config_service import get_config_value
 
 router = APIRouter(prefix="/api/resources", tags=["Resources"])
+
+DEFAULT_VOICE_TIMEOUT = 8  # seconds
 
 
 def parse_voice_shortname(raw_name: str) -> str:
@@ -68,7 +72,13 @@ def get_monitor_info_endpoint():
 @router.get("/voices")
 async def get_edge_voices():
     try:
-        voices = await edge_tts.list_voices()
+        timeout_raw = get_config_value("voice.voices_timeout_seconds", DEFAULT_VOICE_TIMEOUT)
+        try:
+            timeout = max(1, int(timeout_raw))
+        except (TypeError, ValueError):
+            timeout = DEFAULT_VOICE_TIMEOUT
+
+        voices = await asyncio.wait_for(edge_tts.list_voices(), timeout=timeout)
         simplified = [
             {
                 "name": parse_voice_shortname(v.get("Name")),
@@ -79,6 +89,12 @@ async def get_edge_voices():
             for v in voices
         ]
         return {"status": "success", "voices": simplified}
+    except asyncio.TimeoutError:
+        return {
+            "status": "error",
+            "message": f"Voice provider timeout after {timeout} seconds.",
+            "voices": [],
+        }
     except Exception as e:
         return {
             "status": "error",

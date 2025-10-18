@@ -1,3 +1,5 @@
+
+# !DEPRECATED! Use import_dialog_history.
 import os
 import json
 from datetime import datetime, timezone

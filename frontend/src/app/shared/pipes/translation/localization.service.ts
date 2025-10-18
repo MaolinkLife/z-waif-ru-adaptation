@@ -23,7 +23,7 @@ export class LocalizationService {
 
     t(key: string): string {
         const keys = key.split('.');
-        let value: any = this.translations.getValue(); // вот тут — any, baby
+        let value: any = this.translations.getValue();
 
         for (const k of keys) {
             if (value && k in value) {

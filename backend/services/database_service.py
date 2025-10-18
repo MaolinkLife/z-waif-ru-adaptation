@@ -138,7 +138,7 @@ def get_full_history(character_name: str):
 
 
 def get_lorebook_entries():
-    character_name = get_config_value("char_name")
+    character_name = get_config_value("system.char_name")
     return history_service.get_lorebook_entries(character_name)
 
 

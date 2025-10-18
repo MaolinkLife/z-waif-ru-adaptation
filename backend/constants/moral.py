@@ -6,9 +6,17 @@ DEFAULT_EMOTIONAL_STATE = {
     "fear": 0.1,
     "surprise": 0.3,
     "disgust": 0.05,
+    "neutral": 0.4,
 }
 
 DEFAULT_RELATIONSHIP_SCORE = 0.7  # scale 0-1
+
+DEFAULT_METRICS = {
+    "trust": 0.65,
+    "stability": 0.6,
+    "sociability": 0.58,
+    "resentment": 0.05,
+}
 
 # Mapping emotions to human-readable text
 EMOTION_MAP = {
@@ -28,6 +36,27 @@ RELATIONSHIP_STATUSES = [
     (0.0, "formal"),
 ]
 
+POSITIVE_EMOTIONS = {"joy", "love", "tenderness", "affection", "warmth", "gratitude"}
+NEGATIVE_EMOTIONS = {"sadness", "anger", "fear", "disgust", "resentment", "guilt"}
+EMOTION_SYNONYMS = {
+    "warm": "warmth",
+    "warmth": "warmth",
+    "tender": "tenderness",
+    "tenderness": "tenderness",
+    "affection": "affection",
+    "affectionate": "affection",
+    "grief": "sadness",
+    "melancholy": "sadness",
+    "anxious": "fear",
+    "anxiety": "fear",
+    "fearful": "fear",
+    "upset": "sadness",
+    "annoyed": "anger",
+    "mad": "anger",
+    "furious": "anger",
+    "neutral": "neutral",
+}
+
 # Behavioral recommendations for each dominant emotion
 BEHAVIORAL_RECOMMENDATIONS = {
     "joy": ["be playful", "maintain positive tone"],
@@ -36,6 +65,10 @@ BEHAVIORAL_RECOMMENDATIONS = {
     "fear": ["be calming", "provide reassurance"],
     "surprise": ["be curious", "encourage interest"],
     "disgust": ["be delicate", "avoid arguments"],
+    "warmth": ["lean into gentle admiration", "mirror warmth"],
+    "tenderness": ["answer softly", "use affectionate language"],
+    "affection": ["be close", "offer emotional validation"],
+    "neutral": ["respond with balanced tone"],
 }
 
 FALLBACK_RECOMMENDATION = ["be natural"]

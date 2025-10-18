@@ -7,6 +7,7 @@ from datetime import datetime
 
 from services.logger_service import log_audit_entry, AuditStatus
 from services.config_service import get_config_value
+from services.localization_service import get_text
 from constants.visual import (
     DEFAULT_VISUAL_MODEL,
     IMAGE_TOKEN_INDEX,
@@ -33,10 +34,18 @@ class AppleVisionProvider:
             torch_dtype = torch.float32
 
         try:
+            init_message = get_text(
+                "logger.visual_provider_init",
+                params={"model_id": self.model_id, "device": self.device},
+                default=f"[AppleVisionProvider] Loading model {self.model_id} on device {self.device}",
+            )
+            print(init_message)
             log_audit_entry(
                 "visual_provider_init",
-                f"[AppleVisionProvider] Loading model {self.model_id} on device {self.device}",
+                init_message,
                 AuditStatus.INFO,
+                message_key="logger.visual_provider_init",
+                message_args={"model_id": self.model_id, "device": self.device},
             )
 
             from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -55,15 +64,33 @@ class AppleVisionProvider:
                 low_cpu_mem_usage=True,
             ).to(self.device)
 
+            loaded_message = get_text(
+                "logger.visual_provider_loaded",
+                params={"model_id": self.model_id, "device": self.device},
+                default=f"[AppleVisionProvider] Model {self.model_id} ready on {self.device}",
+            )
+            print(loaded_message)
             log_audit_entry(
                 "visual_provider_loaded",
-                f"[AppleVisionProvider] Model {self.model_id} ready on {self.device}",
+                loaded_message,
                 AuditStatus.SUCCESS,
+                message_key="logger.visual_provider_loaded",
+                message_args={"model_id": self.model_id, "device": self.device},
             )
 
         except Exception as e:
-            error_msg = f"[AppleVisionProvider] Failed to load model: {e}"
-            log_audit_entry("visual_provider_error", error_msg, AuditStatus.ERROR)
+            error_msg = get_text(
+                "logger.visual_provider_error",
+                params={"error": str(e)},
+                default=f"[AppleVisionProvider] Failed to load model: {e}",
+            )
+            log_audit_entry(
+                "visual_provider_error",
+                error_msg,
+                AuditStatus.ERROR,
+                message_key="logger.visual_provider_error",
+                message_args={"error": str(e)},
+            )
             print(
                 f"[ERROR] [{datetime.utcnow().isoformat()}Z] {error_msg}\n{traceback.format_exc()}"
             )
@@ -72,10 +99,17 @@ class AppleVisionProvider:
 
     def is_ready(self) -> bool:
         ready = self.model is not None and self.tokenizer is not None
+        ready_message = get_text(
+            "logger.visual_provider_ready_check",
+            params={"ready": ready},
+            default=f"[AppleVisionProvider] Ready: {ready}",
+        )
         log_audit_entry(
             "visual_provider_ready_check",
-            f"[AppleVisionProvider] Ready: {ready}",
+            ready_message,
             AuditStatus.INFO,
+            message_key="logger.visual_provider_ready_check",
+            message_args={"ready": ready},
         )
         return ready
 
@@ -92,11 +126,17 @@ class AppleVisionProvider:
         Returns:
             Dict with summary, model info and status
         """
+        start_message = get_text(
+            "logger.visual_provider_inference_start",
+            default="[AppleVisionProvider] Starting image description.",
+        )
+        print(start_message)
         log_audit_entry(
             "visual_provider_inference_start",
-            "[AppleVisionProvider] Starting image description.",
+            start_message,
             AuditStatus.INFO,
             details={"prompt": prompt},
+            message_key="logger.visual_provider_inference_start",
         )
 
         if not self.is_ready():
@@ -105,11 +145,17 @@ class AppleVisionProvider:
                 "model": self.model_id,
                 "status": "not_ready",
             }
+            skipped_message = get_text(
+                "logger.visual_provider_inference_skipped",
+                default="[AppleVisionProvider] Module not ready.",
+            )
+            print(skipped_message)
             log_audit_entry(
                 "visual_provider_inference_skipped",
-                "[AppleVisionProvider] Module not ready.",
+                skipped_message,
                 AuditStatus.WARNING,
                 details=result,
+                message_key="logger.visual_provider_inference_skipped",
             )
             return result
 
@@ -158,22 +204,34 @@ class AppleVisionProvider:
                 "status": "success",
             }
 
+            success_message = get_text(
+                "logger.visual_provider_inference_success",
+                default="[AppleVisionProvider] Image description generated successfully.",
+            )
+            print(success_message)
             log_audit_entry(
                 "visual_provider_inference_success",
-                "[AppleVisionProvider] Image description generated successfully.",
+                success_message,
                 AuditStatus.SUCCESS,
                 details={"summary_preview": text[:100]},
+                message_key="logger.visual_provider_inference_success",
             )
 
             return result
 
         except Exception as e:
-            error_msg = f"[AppleVisionProvider] Inference error: {e}"
+            error_msg = get_text(
+                "logger.visual_provider_inference_error",
+                params={"error": str(e)},
+                default=f"[AppleVisionProvider] Inference error: {e}",
+            )
             log_audit_entry(
                 "visual_provider_inference_error",
                 error_msg,
                 AuditStatus.ERROR,
                 details={"error": str(e), "traceback": traceback.format_exc()[:500]},
+                message_key="logger.visual_provider_inference_error",
+                message_args={"error": str(e)},
             )
             print(
                 f"[ERROR] [{datetime.utcnow().isoformat()}Z] {error_msg}\n{traceback.format_exc()}"

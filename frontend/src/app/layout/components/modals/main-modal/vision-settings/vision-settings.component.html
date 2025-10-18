@@ -1,214 +1,310 @@
 <div class="settings-wrapper">
-    <form
-        [formGroup]="visionForm"
-        (ngSubmit)="saveChanges()"
-        class="settings-form"
-    >
-        <h2>👁️ {{ "settings.visionSettings" | translate }}</h2>
+    <ng-container *ngIf="isLoading$ | async; else formContent">
+        <div class="settings-form">
+            <h2><app-skeleton height="2rem" width="180px"></app-skeleton></h2>
 
-        <div class="form-group">
-            <label class="checkbox">
-                <input type="checkbox" formControlName="enabled" />
-                {{ "settings.enableVisionProcessing" | translate }}
-            </label>
-        </div>
+            <div class="form-group">
+                <app-skeleton height="1.5rem" width="60%"></app-skeleton>
+            </div>
 
-        <!-- Выбор активного провайдера -->
-        <div class="form-group">
-            <label for="active_provider">{{
-                "settings.activeVisionProvider" | translate
-            }}</label>
-            <select id="active_provider" formControlName="active_provider">
-                <option
-                    *ngFor="let provider of visionProviders"
-                    [value]="provider.value"
-                >
-                    {{ provider.label }}
-                </option>
-            </select>
-        </div>
+            <div class="form-group">
+                <label><app-skeleton height="1rem" width="140px"></app-skeleton></label>
+                <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+            </div>
 
-        <!-- НОВЫЙ БЛОК - Выбор монитора -->
-        <div class="form-group">
-            <label for="monitorIndex">{{
-                "settings.monitorSelection" | translate
-            }}</label>
-            <div class="monitor-selection">
-                <input
-                    id="monitorIndex"
-                    type="number"
-                    formControlName="monitorIndex"
-                    min="0"
-                    readonly
-                    class="monitor-input"
-                />
-                <button
-                    type="button"
-                    class="select-monitor-btn"
-                    (click)="openMonitorSelection()"
-                >
-                    🖥️ {{ "settings.selectMonitor" | translate }}
-                </button>
+            <div class="form-group">
+                <app-skeleton height="1.5rem" width="100%"></app-skeleton>
+            </div>
+
+            <div class="form-group">
+                <label><app-skeleton height="1rem" width="120px"></app-skeleton></label>
+                <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+            </div>
+
+            <div class="form-group">
+                <label><app-skeleton height="1rem" width="140px"></app-skeleton></label>
+                <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+            </div>
+
+            <div class="form-group">
+                <label><app-skeleton height="1rem" width="140px"></app-skeleton></label>
+                <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+            </div>
+
+            <div class="form-group">
+                <app-skeleton height="1.5rem" width="100%"></app-skeleton>
+            </div>
+
+            <div class="form-group">
+                <label><app-skeleton height="1rem" width="140px"></app-skeleton></label>
+                <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+            </div>
+
+            <div class="form-group">
+                <label><app-skeleton height="1rem" width="140px"></app-skeleton></label>
+                <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+            </div>
+
+            <div class="button-row">
+                <app-skeleton height="2.5rem" width="140px"></app-skeleton>
             </div>
         </div>
+    </ng-container>
 
-        <!-- Режим захвата -->
-        <div class="form-group">
-            <label for="capture_mode">{{
-                "settings.captureMode" | translate
-            }}</label>
-            <select id="capture_mode" formControlName="capture_mode">
-                <option value="monitor">
-                    {{ "settings.monitor" | translate }}
-                </option>
-                <option value="window">
-                    {{ "settings.window" | translate }}
-                </option>
-                <option value="region">
-                    {{ "settings.region" | translate }}
-                </option>
-            </select>
-        </div>
-
-        <!-- Название окна (если режим "window") -->
-        <div
-            class="form-group"
-            *ngIf="visionForm.get('capture_mode')?.value === 'window'"
+    <ng-template #formContent>
+        <form
+            [formGroup]="visionForm"
+            (ngSubmit)="saveChanges()"
+            class="settings-form"
         >
-            <label for="window_title">{{
-                "settings.windowTitle" | translate
-            }}</label>
-            <input
-                id="window_title"
-                type="text"
-                formControlName="window_title"
-                [placeholder]="'settings.windowTitlePlaceholder' | translate"
-            />
-        </div>
+            <h2>👁️ {{ "settings.visionSettings" | translate }}</h2>
 
-        <!-- Процесс окна (если режим "window") -->
-        <div
-            class="form-group"
-            *ngIf="visionForm.get('capture_mode')?.value === 'window'"
-        >
-            <label for="window_process">{{
-                "settings.windowProcess" | translate
-            }}</label>
-            <input
-                id="window_process"
-                type="text"
-                formControlName="window_process"
-                [placeholder]="'settings.windowProcessPlaceholder' | translate"
-            />
-        </div>
+            <div class="form-group">
+                <label class="checkbox">
+                    <input type="checkbox" formControlName="enabled" />
+                    {{ "settings.enableVisionProcessing" | translate }}
+                </label>
+            </div>
 
-        <div class="form-group">
-            <label for="fps">{{ "settings.captureFps" | translate }}</label>
-            <input
-                id="fps"
-                type="number"
-                formControlName="fps"
-                min="1"
-                max="30"
-            />
-        </div>
+            <!-- Выбор активного провайдера -->
+            <div class="form-group">
+                <label for="activeProvider">{{
+                    "settings.activeVisionProvider" | translate
+                }}</label>
+                <select id="activeProvider" formControlName="activeProvider">
+                    <option
+                        *ngFor="let provider of visionProviders"
+                        [value]="provider.value"
+                    >
+                        {{ provider.label }}
+                    </option>
+                </select>
+            </div>
 
-        <div class="form-group">
-            <label for="bufferSec">{{
-                "settings.bufferSeconds" | translate
-            }}</label>
-            <input
-                id="bufferSec"
-                type="number"
-                formControlName="bufferSec"
-                min="1"
-                max="30"
-            />
-        </div>
+            <div
+                class="provider-settings"
+                formGroupName="visionModules"
+                *ngIf="activeProvider && currentProviderGroup"
+            >
+                <h3>
+                    {{ "settings.providerSettings" | translate }}:
+                    {{ getProviderLabel(activeProvider) }}
+                </h3>
+                <div [formGroupName]="activeProvider">
+                    <ng-container *ngFor="let field of getProviderFields(activeProvider)">
+                        <div class="form-group" *ngIf="field.type === 'boolean'">
+                            <label class="checkbox">
+                                <input type="checkbox" [formControlName]="field.key" />
+                                {{ field.label }}
+                            </label>
+                        </div>
+                        <div class="form-group" *ngIf="field.type !== 'boolean'">
+                            <label
+                                [attr.for]="activeProvider + '-' + field.key"
+                            >
+                                {{ field.label }}
+                            </label>
+                            <input
+                                *ngIf="field.type === 'number'"
+                                type="number"
+                                class="provider-input"
+                                [id]="activeProvider + '-' + field.key"
+                                [formControlName]="field.key"
+                            />
+                            <input
+                                *ngIf="field.type === 'text'"
+                                type="text"
+                                class="provider-input"
+                                [id]="activeProvider + '-' + field.key"
+                                [formControlName]="field.key"
+                            />
+                        </div>
+                    </ng-container>
+                </div>
+            </div>
 
-        <div class="form-group">
-            <label for="downscaleWidth">{{
-                "settings.downscaleWidth" | translate
-            }}</label>
-            <input
-                id="downscaleWidth"
-                type="number"
-                formControlName="downscaleWidth"
-                min="640"
-                max="1920"
-                step="320"
-            />
-        </div>
+            <!-- НОВЫЙ БЛОК - Выбор монитора -->
+            <div class="form-group">
+                <label for="monitorIndex">{{
+                    "settings.monitorSelection" | translate
+                }}</label>
+                <div class="monitor-selection">
+                    <input
+                        id="monitorIndex"
+                        type="number"
+                        formControlName="monitorIndex"
+                        min="0"
+                        readonly
+                        class="monitor-input"
+                    />
+                    <button
+                        type="button"
+                        class="select-monitor-btn"
+                        (click)="openMonitorSelection()"
+                    >
+                        🖥️ {{ "settings.selectMonitor" | translate }}
+                    </button>
+                </div>
+            </div>
 
-        <div class="form-group">
-            <label class="checkbox">
-                <input type="checkbox" formControlName="yoloEnabled" />
-                {{ "settings.enableYoloDetection" | translate }}
-            </label>
-        </div>
+            <!-- Режим захвата -->
+            <div class="form-group">
+                <label for="captureMode">{{
+                    "settings.captureMode" | translate
+                }}</label>
+                <select id="captureMode" formControlName="captureMode">
+                    <option value="monitor">
+                        {{ "settings.monitor" | translate }}
+                    </option>
+                    <option value="window">
+                        {{ "settings.window" | translate }}
+                    </option>
+                    <option value="region">
+                        {{ "settings.region" | translate }}
+                    </option>
+                </select>
+            </div>
 
-        <div class="form-group">
-            <label for="ocrLang">{{
-                "settings.ocrLanguages" | translate
-            }}</label>
-            <input
-                id="ocrLang"
-                type="text"
-                formControlName="ocrLang"
-                [placeholder]="'settings.ocrLanguagesPlaceholder' | translate"
-            />
-        </div>
+            <!-- Название окна (если режим "window") -->
+            <div
+                class="form-group"
+                *ngIf="visionForm.get('captureMode')?.value === 'window'"
+            >
+                <label for="windowTitle">{{
+                    "settings.windowTitle" | translate
+                }}</label>
+                <input
+                    id="windowTitle"
+                    type="text"
+                    formControlName="windowTitle"
+                    [placeholder]="'settings.windowTitlePlaceholder' | translate"
+                />
+            </div>
 
-        <div class="form-group">
-            <label for="ocrMinConf">{{
-                "settings.ocrMinConfidence" | translate
-            }}</label>
-            <input
-                id="ocrMinConf"
-                type="number"
-                formControlName="ocrMinConf"
-                min="0"
-                max="100"
-            />
-        </div>
+            <!-- Процесс окна (если режим "window") -->
+            <div
+                class="form-group"
+                *ngIf="visionForm.get('captureMode')?.value === 'window'"
+            >
+                <label for="windowProcess">{{
+                    "settings.windowProcess" | translate
+                }}</label>
+                <input
+                    id="windowProcess"
+                    type="text"
+                    formControlName="windowProcess"
+                    [placeholder]="'settings.windowProcessPlaceholder' | translate"
+                />
+            </div>
 
-        <div class="form-group">
-            <label for="ocrMaxLines">{{
-                "settings.ocrMaxLines" | translate
-            }}</label>
-            <input
-                id="ocrMaxLines"
-                type="number"
-                formControlName="ocrMaxLines"
-                min="1"
-                max="20"
-            />
-        </div>
+            <div class="form-group">
+                <label for="fps">{{ "settings.captureFps" | translate }}</label>
+                <input
+                    id="fps"
+                    type="number"
+                    formControlName="fps"
+                    min="1"
+                    max="30"
+                />
+            </div>
 
-        <!-- Debug -->
-        <div class="form-group">
-            <label class="checkbox">
-                <input type="checkbox" formControlName="debug_save" />
-                {{ "settings.saveDebugFrames" | translate }}
-            </label>
-        </div>
+            <div class="form-group">
+                <label for="bufferSec">{{
+                    "settings.bufferSeconds" | translate
+                }}</label>
+                <input
+                    id="bufferSec"
+                    type="number"
+                    formControlName="bufferSec"
+                    min="1"
+                    max="30"
+                />
+            </div>
 
-        <div class="form-group">
-            <label for="debug_path">{{
-                "settings.debugPath" | translate
-            }}</label>
-            <input
-                id="debug_path"
-                type="text"
-                formControlName="debug_path"
-                [placeholder]="'settings.debugPathPlaceholder' | translate"
-            />
-        </div>
+            <div class="form-group">
+                <label for="downscaleWidth">{{
+                    "settings.downscaleWidth" | translate
+                }}</label>
+                <input
+                    id="downscaleWidth"
+                    type="number"
+                    formControlName="downscaleWidth"
+                    min="640"
+                    max="1920"
+                    step="320"
+                />
+            </div>
 
-        <div class="button-row">
-            <button type="submit" [disabled]="!hasChanges()">
-                💾 {{ "general.saveVisionSettings" | translate }}
-            </button>
-        </div>
-    </form>
+            <div class="form-group">
+                <label class="checkbox">
+                    <input type="checkbox" formControlName="yoloEnabled" />
+                    {{ "settings.enableYoloDetection" | translate }}
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label for="ocrLang">{{
+                    "settings.ocrLanguages" | translate
+                }}</label>
+                <input
+                    id="ocrLang"
+                    type="text"
+                    formControlName="ocrLang"
+                    [placeholder]="'settings.ocrLanguagesPlaceholder' | translate"
+                />
+            </div>
+
+            <div class="form-group">
+                <label for="ocrMinConf">{{
+                    "settings.ocrMinConfidence" | translate
+                }}</label>
+                <input
+                    id="ocrMinConf"
+                    type="number"
+                    formControlName="ocrMinConf"
+                    min="0"
+                    max="100"
+                />
+            </div>
+
+            <div class="form-group">
+                <label for="ocrMaxLines">{{
+                    "settings.ocrMaxLines" | translate
+                }}</label>
+                <input
+                    id="ocrMaxLines"
+                    type="number"
+                    formControlName="ocrMaxLines"
+                    min="1"
+                    max="20"
+                />
+            </div>
+
+            <!-- Debug -->
+            <div class="form-group">
+                <label class="checkbox">
+                    <input type="checkbox" formControlName="debugSave" />
+                    {{ "settings.saveDebugFrames" | translate }}
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label for="debugPath">{{
+                    "settings.debugPath" | translate
+                }}</label>
+                <input
+                    id="debugPath"
+                    type="text"
+                    formControlName="debugPath"
+                    [placeholder]="'settings.debugPathPlaceholder' | translate"
+                />
+            </div>
+
+            <div class="button-row">
+                <button type="submit" [disabled]="!hasChanges()">
+                    💾 {{ "general.saveVisionSettings" | translate }}
+                </button>
+            </div>
+        </form>
+    </ng-template>
 </div>

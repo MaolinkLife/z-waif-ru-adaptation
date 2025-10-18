@@ -86,8 +86,8 @@ export class LorebookComponent implements OnInit {
             this.lorebookService.updateEntry$(entry.id, entry).subscribe(
                 response => {
                     this.notificationService.open({
-                        message: JSON.stringify(response),
-                        title: 'Lorebook Updated',
+                        message: 'Lorebook Updated',
+                        title: 'Success',
                         type: 'success',
                         autoClose: true
                     });

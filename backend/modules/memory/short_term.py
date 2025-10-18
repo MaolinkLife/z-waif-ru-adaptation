@@ -14,12 +14,32 @@ from sqlalchemy.orm import Session
 from models.models import History, ShortTermMemory
 from services.db_core import engine, SessionLocal
 from services.logger_service import AuditStatus, log_audit_entry
+from services.localization_service import get_text
+from services.config_service import get_config_value
 
 from modules.generative.manager import generation_manager, NoProviderResolved
 from modules.generative.types import GenerateRequest
 from modules.memory.embeddings import Provider, get_embedding
 
 DEFAULT_SIMILARITY_THRESHOLD = 0.7
+
+
+def _get_primary_vector_profile() -> dict:
+    retrieval_cfg = get_config_value("rag.retrieval", {}) or {}
+    vectors_cfg = retrieval_cfg.get("vectors", {}) if isinstance(retrieval_cfg, dict) else {}
+    profiles_cfg = vectors_cfg.get("profiles", {}) if isinstance(vectors_cfg, dict) else {}
+    primary_name = vectors_cfg.get("primary")
+    if primary_name and isinstance(profiles_cfg, dict) and primary_name in profiles_cfg:
+        profile = dict(profiles_cfg.get(primary_name) or {})
+        profile.setdefault("name", primary_name)
+        return profile
+
+    if isinstance(profiles_cfg, dict):
+        for name, cfg in profiles_cfg.items():
+            profile = dict(cfg or {})
+            profile.setdefault("name", name)
+            return profile
+    return {}
 
 
 @dataclass
@@ -43,11 +63,20 @@ def _execute_sql(statement: str) -> None:
 
 
 def ensure_short_term_schema() -> None:
-    print("[ShortTermMemory] Запущен модуль проверки схемы.")
+    print(
+        get_text(
+            "short_memory.print_schema_check",
+            default="[ShortTermMemory] Запущен модуль проверки схемы.",
+        )
+    )
     log_audit_entry(
         "short_memory_schema_check",
-        "[ShortTermMemory] Проверяем схему и обязательные поля.",
+        get_text(
+            "logger.short_memory_schema_check",
+            default="[ShortTermMemory] Проверяем схему и обязательные поля.",
+        ),
         AuditStatus.INFO,
+        message_key="logger.short_memory_schema_check",
     )
 
     with engine.connect() as connection:
@@ -59,12 +88,21 @@ def ensure_short_term_schema() -> None:
         }
 
     if "short_term_memory" not in tables:
-        print("[ShortTermMemory] Создаём таблицу краткосрочной памяти.")
+        print(
+            get_text(
+                "short_memory.print_create_table",
+                default="[ShortTermMemory] Создаём таблицу краткосрочной памяти.",
+            )
+        )
         ShortTermMemory.__table__.create(bind=engine)
         log_audit_entry(
             "short_memory_table_created",
-            "[ShortTermMemory] Создана таблица краткосрочной памяти.",
+            get_text(
+                "logger.short_memory_table_created",
+                default="[ShortTermMemory] Создана таблица краткосрочной памяти.",
+            ),
             AuditStatus.SUCCESS,
+            message_key="logger.short_memory_table_created",
         )
 
     _ensure_column("history", "tags", "TEXT DEFAULT '[]'")
@@ -78,11 +116,23 @@ def _ensure_column(table: str, column: str, ddl: str) -> None:
         }
     if column in columns:
         return
-    print(f"[ShortTermMemory] Добавляем колонку {column} в {table}.")
+    print(
+        get_text(
+            "short_memory.print_add_column",
+            params={"column": column, "table": table},
+            default=f"[ShortTermMemory] Добавляем колонку {column} в {table}.",
+        )
+    )
     log_audit_entry(
         "short_memory_column_missing",
-        f"[ShortTermMemory] Добавление колонки {column} в {table}.",
+        get_text(
+            "logger.short_memory_column_missing",
+            params={"column": column, "table": table},
+            default=f"[ShortTermMemory] Добавление колонки {column} в {table}.",
+        ),
         AuditStatus.WARNING,
+        message_key="logger.short_memory_column_missing",
+        message_args={"column": column, "table": table},
     )
     _execute_sql(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}")
 
@@ -96,12 +146,21 @@ def refresh_recent_days(
     days: int = 7,
     summary_prompt: Optional[str] = None,
 ) -> None:
-    print("[ShortTermMemory] Начинаем обновление краткосрочной памяти.")
+    print(
+        get_text(
+            "short_memory.print_refresh_start",
+            default="[ShortTermMemory] Начинаем обновление краткосрочной памяти.",
+        )
+    )
     log_audit_entry(
         "short_memory_refresh_start",
-        "[ShortTermMemory] Запускаем обновление записей за последние дни.",
+        get_text(
+            "logger.short_memory_refresh_start",
+            default="[ShortTermMemory] Запускаем обновление записей за последние дни.",
+        ),
         AuditStatus.INFO,
         details={"days": days},
+        message_key="logger.short_memory_refresh_start",
     )
 
     now = datetime.now(timezone.utc)
@@ -160,17 +219,28 @@ def refresh_recent_days(
             session.commit()
 
             print(
-                f"[ShortTermMemory] Сохранили сводку за {day_start.date()} по {len(dialogue_ids)} сообщениям."
+                get_text(
+                    "short_memory.print_day_saved",
+                    params={
+                        "date": str(day_start.date()),
+                        "count": len(dialogue_ids),
+                    },
+                    default=f"[ShortTermMemory] Сохранили сводку за {day_start.date()} по {len(dialogue_ids)} сообщениям.",
+                )
             )
             log_audit_entry(
                 "short_memory_day_saved",
-                "[ShortTermMemory] Создан дневной блок краткосрочной памяти.",
+                get_text(
+                    "logger.short_memory_day_saved",
+                    default="[ShortTermMemory] Создан дневной блок краткосрочной памяти.",
+                ),
                 AuditStatus.SUCCESS,
                 details={
                     "date": str(day_start.date()),
                     "messages": len(dialogue_ids),
                     "themes": themes,
                 },
+                message_key="logger.short_memory_day_saved",
             )
     finally:
         session.close()
@@ -182,7 +252,13 @@ def _build_transcript(messages: Sequence[History]) -> str:
         role = msg.role.capitalize()
         lines.append(f"{role}: {msg.content}")
     transcript = "\n".join(lines)
-    print("[ShortTermMemory] Собран транскрипт для суммаризации, длина символов:", len(transcript))
+    print(
+        get_text(
+            "short_memory.print_transcript",
+            params={"length": len(transcript)},
+            default="[ShortTermMemory] Собран транскрипт для суммаризации, длина символов: {length}",
+        )
+    )
     return transcript
 
 
@@ -193,7 +269,7 @@ def _generate_day_summary(
     summary_prompt: Optional[str] = None,
 ) -> tuple[str, List[str]]:
     summary_prompt = summary_prompt or (
-        "Составь тёплую краткую выжимку дня и перечисли ключевые темы."
+        "Составь краткую выжимку за день и перечисли ключевые темы."
     )
 
     system_message = {
@@ -226,9 +302,14 @@ def _generate_day_summary(
     except (NoProviderResolved, json.JSONDecodeError, ValueError) as exc:
         log_audit_entry(
             "short_memory_summary_fallback",
-            "[ShortTermMemory] Не удалось получить JSON-резюме, использую fallback.",
+            get_text(
+                "logger.short_memory_summary_fallback",
+                default="[ShortTermMemory] Не удалось получить JSON-резюме, использую fallback.",
+            ),
             AuditStatus.WARNING,
             details={"error": str(exc)},
+            message_key="logger.short_memory_summary_fallback",
+            message_args={"error": str(exc)},
         )
         summary = " ".join(transcript.split("\n")[:5])[:600]
         themes = []
@@ -265,7 +346,11 @@ def load_recent_records(days: int = 7) -> List[ShortTermRecord]:
                 )
             )
         print(
-            f"[ShortTermMemory] Загружено {len(records)} записей краткосрочной памяти."
+            get_text(
+                "short_memory.print_records_loaded",
+                params={"count": len(records)},
+                default="[ShortTermMemory] Загружено {count} записей краткосрочной памяти.",
+            )
         )
         return records
     finally:
@@ -281,8 +366,18 @@ def find_matching_record(
     best_record: Optional[ShortTermRecord] = None
     best_score = -math.inf
 
+    profile_cfg = _get_primary_vector_profile()
+    provider = profile_cfg.get("provider", get_config_value("memory.embedding_provider", Provider.AUTO))
+    model = profile_cfg.get("model") or get_config_value("memory.embedding_model", "nomic-embed-text")
+
     for record in records:
-        record_embedding = get_embedding(record.summary, provider=Provider.AUTO)
+        record_embedding = get_embedding(
+            record.summary,
+            provider=provider,
+            model=model,
+            settings=profile_cfg,
+            profile=profile_cfg.get("name"),
+        )
         if not record_embedding:
             continue
         score = _cosine_similarity(query_embedding, record_embedding)
@@ -293,7 +388,10 @@ def find_matching_record(
     if best_record:
         log_audit_entry(
             "short_memory_match",
-            "[ShortTermMemory] Найдена релевантная дневная сводка.",
+            get_text(
+                "logger.short_memory_match",
+                default="[ShortTermMemory] Найдена релевантная дневная сводка.",
+            ),
             AuditStatus.SUCCESS,
             details={
                 "record_id": best_record.id,
@@ -301,12 +399,17 @@ def find_matching_record(
                 "themes": best_record.themes,
                 "score": best_score,
             },
+            message_key="logger.short_memory_match",
         )
     else:
         log_audit_entry(
             "short_memory_no_match",
-            "[ShortTermMemory] Релевантная дневная сводка не найдена.",
+            get_text(
+                "logger.short_memory_no_match",
+                default="[ShortTermMemory] Релевантная дневная сводка не найдена.",
+            ),
             AuditStatus.INFO,
+            message_key="logger.short_memory_no_match",
         )
 
     return best_record

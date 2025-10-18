@@ -37,7 +37,7 @@ class OllamaAnalyzerProvider(AnalyzerProvider):
         try:
             log_audit_entry(
                 "analyzer_ollama_start",
-                "[Analyzer/Ollama] Starting analysis.",
+                "[Analyzer] Starting analysis.",
                 AuditStatus.INFO,
                 details={"model": settings["model"]},
             )
@@ -49,14 +49,14 @@ class OllamaAnalyzerProvider(AnalyzerProvider):
             )
             log_audit_entry(
                 "analyzer_ollama_success",
-                "[Analyzer/Ollama] Analysis completed successfully.",
+                "[Analyzer] Analysis completed successfully.",
                 AuditStatus.SUCCESS,
             )
             return result
         except Exception as exc:  # pragma: no cover
             log_audit_entry(
                 "analyzer_ollama_error",
-                "[Analyzer/Ollama] Error during analysis.",
+                "[Analyzer] Error during analysis.",
                 AuditStatus.ERROR,
                 details={"error": str(exc), "error_type": type(exc).__name__},
             )

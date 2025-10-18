@@ -10,7 +10,8 @@
 from fastapi import APIRouter, Query
 from fastapi.responses import JSONResponse
 
-from services import api_service
+from modules.generative import conversation
+from core.decision_layer import decision_layer
 from modules.ollama import client as ollama_client
 
 # from services.history_service import get_history
@@ -22,12 +23,25 @@ router = APIRouter(prefix="/api/ollama", tags=["Ollama"])
 
 # Sending messages to Ollama (chat request)
 @router.post("/chat")
-def chat(payload: dict):
-    return {
-        "response": api_service.run_standard(
-            history=payload["history"],
-        )
-    }
+async def chat(payload: dict):
+    history = payload.get("history", [])
+    last_user = next(
+        (msg for msg in reversed(history) if msg.get("role") == "user"), None
+    )
+    if not last_user:
+        return {"status": "error", "message": "No user message provided"}
+
+    user_input = dict(last_user)
+    user_input.setdefault("history", history[:-1])
+
+    decision_context = await decision_layer.process_message(user_input, None)
+    decision_context.pop("raw_media", None)
+    response = await conversation.generate_standard(
+        decision_context,
+        history,
+        user_input,
+    )
+    return {"response": response}
 
 
 # Returns a list of available Ollama models.
@@ -39,7 +53,7 @@ async def get_available_models():
 @router.get("/history")
 async def fetch_history(limit: int = 32):
     try:
-        char_name = config_service.get_config_value("char_name", "default_waifu")
+        char_name = config_service.get_config_value("system.char_name", "default_waifu")
         history = database_service.get_history(char_name, limit)
         return JSONResponse(content={"status": "ok", "history": history})
     except Exception as e:

@@ -66,11 +66,18 @@ class OpenRouterGenerateProvider(GenerateProvider):
         messages = self._ensure_list(request.messages)
         settings = self._compose_settings(request, cfg)
 
+        print("[Generator] OpenRouter: синхронная генерация.")
         log_audit_entry(
             event_type="generator_openrouter_start",
             msg="[Generator/OpenRouter] Запуск синхронной генерации",
             status=AuditStatus.INFO,
-            details={"model": cfg["model"]},
+            details={
+                "model": cfg["model"],
+                "messages": messages,
+                "options": request.options,
+                "metadata": request.metadata,
+                "settings": settings,
+            },
         )
 
         try:
@@ -91,8 +98,13 @@ class OpenRouterGenerateProvider(GenerateProvider):
             event_type="generator_openrouter_success",
             msg="[Generator/OpenRouter] Генерация завершена",
             status=AuditStatus.SUCCESS,
-            details={"model": cfg["model"]},
+            details={
+                "model": cfg["model"],
+                "response": completion.model_dump(),
+                "content_length": len(content),
+            },
         )
+        print("[Generator] OpenRouter: ответ получен.")
 
         return GenerateResult(
             provider=self.name,
@@ -109,11 +121,18 @@ class OpenRouterGenerateProvider(GenerateProvider):
         messages = self._ensure_list(request.messages)
         settings = self._compose_settings(request, cfg)
 
+        print("[Generator] OpenRouter: потоковая генерация.")
         log_audit_entry(
             event_type="generator_openrouter_stream_start",
             msg="[Generator/OpenRouter] Запуск потоковой генерации",
             status=AuditStatus.INFO,
-            details={"model": cfg["model"]},
+            details={
+                "model": cfg["model"],
+                "messages": messages,
+                "options": request.options,
+                "metadata": request.metadata,
+                "settings": settings,
+            },
         )
 
         try:
@@ -140,15 +159,35 @@ class OpenRouterGenerateProvider(GenerateProvider):
             finally:
                 stream.close()
 
+        index = 0
         async for chunk in iterate():
+            index += 1
+            raw_payload = (
+                chunk.raw
+                if isinstance(chunk.raw, (dict, list, str, int, float, bool, type(None)))
+                else str(chunk.raw)
+            )
+            # log_audit_entry(
+            #     event_type="generator_openrouter_stream_chunk",
+            #     msg="[Generator/OpenRouter] Получен потоковый chunk.",
+            #     status=AuditStatus.INFO,
+            #     details={
+            #         "model": cfg["model"],
+            #         "index": index,
+            #         "content": chunk.content,
+            #         "done": chunk.done,
+            #         "raw": raw_payload,
+            #     },
+            # )
             yield chunk
 
         log_audit_entry(
             event_type="generator_openrouter_stream_success",
             msg="[Generator/OpenRouter] Потоковая генерация завершена",
             status=AuditStatus.SUCCESS,
-            details={"model": cfg["model"]},
+            details={"model": cfg["model"], "chunks": index},
         )
+        print("[Generator] OpenRouter: поток завершён.")
 
     def _next_chunk(self, stream) -> GenerateStreamChunk | None:
         try:

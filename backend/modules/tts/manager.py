@@ -109,6 +109,7 @@ class TTSManager:
         self._provider_state_lock = threading.Lock()
         self._providers: Dict[str, TTSProvider] = self._build_providers()
         self._failed_providers: Dict[str, float] = {}
+        self._failed_provider_errors: Dict[str, str] = {}
 
         retry_cfg = get_config_value("voice.provider_retry_seconds", 0) or 0
         try:
@@ -232,7 +233,9 @@ class TTSManager:
         """
         with self._provider_state_lock:
             already_failed = name in self._failed_providers
-            self._failed_providers[name] = time.time()
+            now = time.time()
+            self._failed_providers[name] = now
+            self._failed_provider_errors[name] = error
 
         log_audit_entry(
             "voice_provider_disabled",
@@ -260,6 +263,7 @@ class TTSManager:
             recovered = name in self._failed_providers
             if recovered:
                 del self._failed_providers[name]
+                self._failed_provider_errors.pop(name, None)
 
         if recovered:
             log_audit_entry(
@@ -292,6 +296,7 @@ class TTSManager:
 
             if should_retry:
                 del self._failed_providers[name]
+                self._failed_provider_errors.pop(name, None)
                 log_audit_entry(
                     "voice_provider_retry",
                     "[Voice] Retrying provider after cooldown.",
@@ -423,7 +428,8 @@ class TTSManager:
             suppressed = [
                 name
                 for name in providers.keys()
-                if name not in order_snapshot and name not in ("offline", "gtts", active)
+                if name not in order_snapshot
+                and name not in ("offline", "gtts", active)
             ]
 
         if not order:
@@ -466,6 +472,57 @@ class TTSManager:
         )
 
         return sequence
+
+    def describe_providers(self) -> Dict[str, Dict[str, object]]:
+        """
+        Build a snapshot describing current provider availability and health.
+        """
+        print("[TTSManager] Сбор статуса TTS провайдеров.")
+        providers = self._get_providers()
+        now = time.time()
+
+        with self._provider_state_lock:
+            failed_copy = dict(self._failed_providers)
+            failed_errors = dict(self._failed_provider_errors)
+
+        snapshot: Dict[str, Dict[str, object]] = {}
+        for name, provider in providers.items():
+            availability_error: Optional[str] = None
+            available = False
+            start_time = time.time()
+            try:
+                available = bool(provider.is_available())
+            except Exception as exc:  # pragma: no cover - defensive
+                availability_error = str(exc)
+                available = False
+
+            failed_at = failed_copy.get(name)
+            cooldown = 0.0
+            if failed_at is not None and self._provider_retry_seconds > 0:
+                elapsed = now - failed_at
+                cooldown = max(0.0, self._provider_retry_seconds - elapsed)
+
+            disabled = failed_at is not None and (
+                self._provider_retry_seconds == 0 or cooldown > 0.0
+            )
+            last_error = availability_error or failed_errors.get(name)
+
+            snapshot[name] = {
+                "available": available,
+                "disabled": disabled,
+                "cooldown": round(cooldown, 3),
+                "last_failure_at": failed_at,
+                "last_error": last_error,
+                "check_duration_ms": int((time.time() - start_time) * 1000),
+            }
+
+        log_audit_entry(
+            "tts_provider_snapshot",
+            "[TTS] Provider status snapshot generated.",
+            AuditStatus.INFO,
+            details={"providers": snapshot},
+        )
+        return snapshot
 
     def synthesize_to_file(self, request: TTSRequest, output_path: str) -> TTSResult:
         """
@@ -940,15 +997,17 @@ class TTSManager:
         """
         Stop all TTS operations and clear the queue.
         """
-        print('[TTSManager] Принят сигнал остановки, инициируем аварийную остановку озвучки.')
+        print(
+            "[TTSManager] Принят сигнал остановки, инициируем аварийную остановку озвучки."
+        )
         pending_before = self._queue.qsize()
         log_audit_entry(
-            'tts_stop_initiated',
-            '[TTS] Stopping TTS operations',
+            "tts_stop_initiated",
+            "[TTS] Stopping TTS operations",
             AuditStatus.INFO,
             details={
-                'pending_before': pending_before,
-                'interrupt_active': self._interrupt.is_set(),
+                "pending_before": pending_before,
+                "interrupt_active": self._interrupt.is_set(),
             },
         )
 
@@ -961,21 +1020,21 @@ class TTSManager:
 
         if self._worker_stop.is_set():
             log_audit_entry(
-                'tts_stop_worker_flag_reset',
-                '[TTS] Worker stop flag was set; clearing for continued operation.',
+                "tts_stop_worker_flag_reset",
+                "[TTS] Worker stop flag was set; clearing for continued operation.",
                 AuditStatus.WARNING,
             )
             self._worker_stop.clear()
 
-        voice_state.enter_listening('tts_stopped')
+        voice_state.enter_listening("tts_stopped")
 
         log_audit_entry(
-            'tts_stop_completed',
-            '[TTS] TTS operations stopped',
+            "tts_stop_completed",
+            "[TTS] TTS operations stopped",
             AuditStatus.INFO,
             details={
-                'cleared_requests': cleared,
-                'pending_after': self._queue.qsize(),
+                "cleared_requests": cleared,
+                "pending_after": self._queue.qsize(),
             },
         )
 

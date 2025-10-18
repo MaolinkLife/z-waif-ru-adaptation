@@ -1,32 +1,48 @@
 <div class="message-renderer">
     <ng-container *ngFor="let block of blocks$ | async; trackBy: trackByBlock">
         <ng-container [ngSwitch]="block.type">
-            <markdown
+            <div
                 *ngSwitchCase="'text'"
-                [data]="block.rawContent"
-            ></markdown>
+                class="block text-block"
+                [class.streaming]="isStreaming"
+                [innerHTML]="block.safeContent"
+            ></div>
 
             <div
                 *ngSwitchCase="'code'"
                 class="block code-block"
                 [class.streaming]="!block.isComplete"
             >
-                <div class="code-header" *ngIf="block.language">
+                <div class="code-header">
                     <span class="language">{{ block.language || "code" }}</span>
                     <span class="status" *ngIf="!block.isComplete">●</span>
                 </div>
-                <pre class="code-content"><code>{{ block.content }}</code></pre>
+                <pre class="code-content" [innerHTML]="block.safeContent"></pre>
             </div>
 
-            <div *ngSwitchCase="'header'" class="block header-block">
-                <h3>{{ block.content }}</h3>
-            </div>
+            <div
+                *ngSwitchCase="'header'"
+                class="block header-block"
+                [innerHTML]="block.safeContent"
+            ></div>
 
-            <div *ngSwitchCase="'list'" class="block list-block">
-                <ul>
-                    <li>{{ block.content }}</li>
-                </ul>
-            </div>
+            <div
+                *ngSwitchCase="'list'"
+                class="block list-block"
+                [innerHTML]="block.safeContent"
+            ></div>
+
+            <div
+                *ngSwitchCase="'table'"
+                class="block table-block"
+                [innerHTML]="block.safeContent"
+            ></div>
+
+            <div
+                *ngSwitchCase="'quote'"
+                class="block quote-block"
+                [innerHTML]="block.safeContent"
+            ></div>
 
             <div
                 *ngSwitchCase="'thinking'"
@@ -51,11 +67,9 @@
                 <div
                     class="thinking-body"
                     [class.expanded]="block.isExpanded || isStreaming"
-                    [innerHTML]="block.safeContent || block.rawContent"
+                    [innerHTML]="block.safeContent"
                 ></div>
             </div>
-
-            <hr *ngSwitchCase="'divider'" class="divider-block" />
         </ng-container>
     </ng-container>
 </div>

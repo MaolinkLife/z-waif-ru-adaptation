@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ConfigService } from '../../../../../core/services/config.service';
 import { ResourcesService } from '../../../../../core/services/resources.service';
-import { BehaviorSubject, Observable, combineLatest, of } from 'rxjs';
+import { BehaviorSubject, Observable, forkJoin, of } from 'rxjs';
 import { map, finalize, startWith, take } from 'rxjs/operators';
 import { NotificationService } from '../../../../../shared/components/notification/notification.service';
 import { LocalizationService } from '../../../../../shared/pipes/translation/localization.service';
@@ -15,6 +15,21 @@ interface AudioDevice {
 interface AudioDevicesData {
     audioOutputs: AudioDevice[];
     windowsOutputs: AudioDevice[];
+}
+
+interface TTSProviderStatus {
+    available: boolean;
+    disabled: boolean;
+    cooldown: number;
+    lastFailureAt?: number | null;
+    lastError?: string | null;
+}
+
+interface VoiceModuleOption {
+    value: string;
+    label: string;
+    available: boolean;
+    tooltip?: string;
 }
 
 @Component({
@@ -34,11 +49,15 @@ export class VoiceSettingsComponent implements OnInit {
 
     edgeVoices: { name: string; language: string; gender: string; styles: string[] }[] = [];
 
-    voiceModules = [
-        { value: 'elevenlabs', label: 'ElevenLabs' },
-        { value: 'edge', label: 'Edge TTS' },
-        { value: 'openai', label: 'OpenAI TTS' }
+    private readonly baseVoiceModules: VoiceModuleOption[] = [
+        { value: 'elevenlabs', label: 'ElevenLabs', available: true },
+        { value: 'edge', label: 'Edge TTS', available: true },
+        { value: 'gtts', label: 'gTTS (Google)', available: true },
+        { value: 'offline', label: 'Offline (pyttsx3)', available: true },
     ];
+
+    voiceModules: VoiceModuleOption[] = this.baseVoiceModules.map((module) => ({ ...module }));
+    providerStatuses: Record<string, TTSProviderStatus> = {};
 
     constructor(
         private fb: FormBuilder,
@@ -56,29 +75,41 @@ export class VoiceSettingsComponent implements OnInit {
     }
 
     loadAllData(): void {
+        this.isLoading$.next(true);
         const config$ = this.configService.getConfig$().pipe(take(1));
         const devices$ = this.resourcesService.getAudioDevices$().pipe(take(1));
         const voices$ = this.resourcesService.getEdgeVoices$().pipe(take(1));
+        const providers$ = this.resourcesService.getVoiceProviders$().pipe(take(1));
 
-        combineLatest([config$, devices$, voices$]).pipe(
-            finalize(() => {
-                this.isLoading$.next(false);
-            })
-        ).subscribe({
-            next: ([config, devices, voices]) => {
-                console.log({
-                    config
-                });
-
-                this.loadConfig(config);
-                this.loadDevices(devices);
-                this.loadEdgeVoices(voices);
-            },
-            error: (error) => {
-                console.error('Error loading data:', error);
-                this.isLoading$.next(false);
-            }
-        });
+        forkJoin({
+            config: config$,
+            devices: devices$,
+            voices: voices$,
+            providers: providers$,
+        })
+            .pipe(
+                finalize(() => {
+                    this.isLoading$.next(false);
+                })
+            )
+            .subscribe({
+                next: ({ config, devices, voices, providers }) => {
+                    try {
+                        console.log({ config });
+                        this.loadConfig(config);
+                        this.applyProviderStatuses(providers);
+                        this.loadDevices(devices);
+                        this.loadEdgeVoices(voices);
+                    } catch (error) {
+                        console.error('Error processing voice settings payload:', error);
+                        this.isLoading$.next(false);
+                    }
+                },
+                error: (error) => {
+                    console.error('Error loading data:', error);
+                    this.isLoading$.next(false);
+                }
+            });
     }
 
     loadConfig(config: any): void {
@@ -114,6 +145,34 @@ export class VoiceSettingsComponent implements OnInit {
                     // camelCase -> camelCase (уже смаплено)
                     voiceModulesValue.edge = {
                         voiceLanguage: config.voice.voiceModules.edge.voiceLanguage || ''
+                    };
+                } else {
+                    voiceModulesValue.edge = voiceModulesValue.edge || { voiceLanguage: '' };
+                }
+
+                if (config.voice.voiceModules.gtts) {
+                    voiceModulesValue.gtts = {
+                        language: config.voice.voiceModules.gtts.language || 'ru',
+                        tld: config.voice.voiceModules.gtts.tld || 'com',
+                        slow: config.voice.voiceModules.gtts.slow ?? false,
+                        fallbackVoice: config.voice.voiceModules.gtts.fallbackVoice || ''
+                    };
+                } else {
+                    voiceModulesValue.gtts = voiceModulesValue.gtts || {
+                        language: 'ru',
+                        tld: 'com',
+                        slow: false,
+                        fallbackVoice: ''
+                    };
+                }
+
+                if (config.voice.voiceModules.offline) {
+                    voiceModulesValue.offline = {
+                        voice: config.voice.voiceModules.offline.voice || ''
+                    };
+                } else {
+                    voiceModulesValue.offline = voiceModulesValue.offline || {
+                        voice: ''
                     };
                 }
 
@@ -195,6 +254,15 @@ export class VoiceSettingsComponent implements OnInit {
                 }),
                 edge: this.fb.group({
                     voiceLanguage: ['']
+                }),
+                gtts: this.fb.group({
+                    language: ['ru'],
+                    tld: ['com'],
+                    slow: [false],
+                    fallbackVoice: ['']
+                }),
+                offline: this.fb.group({
+                    voice: ['']
                 })
             })
         });
@@ -294,6 +362,15 @@ export class VoiceSettingsComponent implements OnInit {
             },
             edge: {
                 voiceLanguage: ''
+            },
+            gtts: {
+                language: 'ru',
+                tld: 'com',
+                slow: false,
+                fallbackVoice: ''
+            },
+            offline: {
+                voice: ''
             }
         });
     }
@@ -310,6 +387,10 @@ export class VoiceSettingsComponent implements OnInit {
         return this.getActiveModule() === 'edge';
     }
 
+    showGttsFields(): boolean {
+        return this.getActiveModule() === 'gtts';
+    }
+
     showElevenLabsFields(): boolean {
         return this.getActiveModule() === 'elevenlabs';
     }
@@ -324,5 +405,87 @@ export class VoiceSettingsComponent implements OnInit {
 
     getEdgeField(field: string) {
         return this.voiceForm.get(`voiceModules.edge.${field}`);
+    }
+
+    getGttsField(field: string) {
+        return this.voiceForm.get(`voiceModules.gtts.${field}`);
+    }
+
+    isModuleAvailable(value: string): boolean {
+        return this.voiceModules.find((module) => module.value === value)?.available ?? false;
+    }
+
+    getModuleLabel(module: VoiceModuleOption): string {
+        if (module.available) {
+            return module.label;
+        }
+        const unavailableText = this.t('settings.voiceProviderUnavailable', 'Unavailable');
+        return `${module.label} (${unavailableText})`;
+    }
+
+    getModuleTooltip(module: VoiceModuleOption): string | null {
+        return module.tooltip ?? null;
+    }
+
+    private applyProviderStatuses(payload: any): void {
+        const providers = (payload && payload.providers) || {};
+        const statuses: Record<string, TTSProviderStatus> = {};
+
+        Object.keys(providers).forEach((key) => {
+            const item = providers[key] || {};
+            statuses[key] = {
+                available: !!item.available,
+                disabled: !!item.disabled,
+                cooldown: typeof item.cooldown === 'number' ? item.cooldown : 0,
+                lastFailureAt: item.last_failure_at ?? null,
+                lastError: item.last_error ?? null,
+            };
+        });
+
+        this.providerStatuses = statuses;
+        this.voiceModules = this.baseVoiceModules.map((module) => {
+            const status = statuses[module.value];
+            if (!status) {
+                return { ...module };
+            }
+
+            const available = status.available && !status.disabled;
+            const tooltipLines: string[] = [];
+            if (!status.available) {
+                tooltipLines.push(this.t('settings.voiceProviderUnavailable', 'Provider unavailable'));
+            }
+            if (status.disabled) {
+                const cooldownText = this.t(
+                    'settings.voiceProviderCooldown',
+                    'Provider disabled (cooldown {seconds}s)'
+                );
+                const formattedCooldown = cooldownText.includes('{seconds}')
+                    ? cooldownText.replace('{seconds}', status.cooldown.toFixed(1))
+                    : `${cooldownText} (${status.cooldown.toFixed(1)}s)`;
+                tooltipLines.push(formattedCooldown);
+            }
+            if (status.lastError) {
+                tooltipLines.push(status.lastError);
+            }
+
+            return {
+                ...module,
+                available,
+                tooltip: tooltipLines.length > 0 ? tooltipLines.join('\n') : undefined,
+            };
+        });
+
+        const active = this.getActiveModule();
+        if (active && !this.isModuleAvailable(active)) {
+            const fallback = this.voiceModules.find((module) => module.available);
+            if (fallback) {
+                this.voiceForm.patchValue({ activeModule: fallback.value }, { emitEvent: true });
+            }
+        }
+    }
+
+    private t(key: string, fallback: string): string {
+        const value = this.localizationService.t(key);
+        return value === key ? fallback : value;
     }
 }

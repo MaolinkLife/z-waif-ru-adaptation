@@ -12,6 +12,7 @@ from typing import Optional, List, Tuple
 
 from services.config_service import get_config_value
 from services.logger_service import log_audit_entry, AuditStatus
+from services.localization_service import get_text
 
 
 class VisionBuffer:
@@ -71,8 +72,16 @@ class ScreenCapturer:
     def start(self):
         """Start screen capture."""
         if not get_config_value("vision.enabled", False):
+            message_disabled = get_text(
+                "logger.vision_disabled",
+                default="[Vision] Vision module disabled",
+            )
+            print(message_disabled)
             log_audit_entry(
-                "vision_disabled", "[Vision] Vision module disabled", AuditStatus.INFO
+                "vision_disabled",
+                message_disabled,
+                AuditStatus.INFO,
+                message_key="logger.vision_disabled",
             )
             return
 
@@ -82,8 +91,15 @@ class ScreenCapturer:
         self.running = True
         self.capture_thread = threading.Thread(target=self._capture_loop, daemon=True)
         self.capture_thread.start()
+        message_started = get_text(
+            "logger.vision_started", default="[Vision] Vision module started"
+        )
+        print(message_started)
         log_audit_entry(
-            "vision_started", "[Vision] Vision module started", AuditStatus.SUCCESS
+            "vision_started",
+            message_started,
+            AuditStatus.SUCCESS,
+            message_key="logger.vision_started",
         )
 
     def stop(self):
@@ -91,8 +107,15 @@ class ScreenCapturer:
         self.running = False
         if self.capture_thread:
             self.capture_thread.join()
+        message_stopped = get_text(
+            "logger.vision_stopped", default="[Vision] Vision module stopped"
+        )
+        print(message_stopped)
         log_audit_entry(
-            "vision_stopped", "[Vision] Vision module stopped", AuditStatus.INFO
+            "vision_stopped",
+            message_stopped,
+            AuditStatus.INFO,
+            message_key="logger.vision_stopped",
         )
 
     def _capture_loop(self):
@@ -114,11 +137,17 @@ class ScreenCapturer:
 
                 if region:
                     monitor = region
+                    message_region = get_text(
+                        "logger.vision_region_selected",
+                        default="[Vision] Using explicit capture region",
+                    )
+                    print(message_region)
                     log_audit_entry(
                         "vision_region_selected",
-                        "[Vision] Using explicit capture region",
+                        message_region,
                         AuditStatus.INFO,
                         details={"region": region},
+                        message_key="logger.vision_region_selected",
                     )
                 else:
                     physical_monitors = monitors[1:] if len(monitors) > 1 else []
@@ -136,11 +165,25 @@ class ScreenCapturer:
                         max_idx = len(physical_monitors) - 1
                         if requested_idx < 0 or requested_idx > max_idx:
                             clamped_idx = min(max(requested_idx, 0), max_idx)
+                            message_monitor_adjusted = get_text(
+                                "logger.vision_monitor_index_adjusted",
+                                params={
+                                    "requested": requested_idx,
+                                    "selected": clamped_idx,
+                                },
+                                default="[Vision] Monitor index {requested} out of range, using {selected}",
+                            )
+                            print(message_monitor_adjusted)
                             log_audit_entry(
                                 "vision_monitor_index_adjusted",
-                                "[Vision] Monitor index out of range, clamped",
+                                message_monitor_adjusted,
                                 AuditStatus.WARNING,
                                 details={"requested": requested_idx, "selected": clamped_idx},
+                                message_key="logger.vision_monitor_index_adjusted",
+                                message_args={
+                                    "requested": requested_idx,
+                                    "selected": clamped_idx,
+                                },
                             )
                             requested_idx = clamped_idx
                         selected_monitor_idx = requested_idx
@@ -148,15 +191,29 @@ class ScreenCapturer:
                         selected_monitor = physical_monitors[selected_monitor_idx]
 
                     monitor = selected_monitor
+                    message_monitor_selected = get_text(
+                        "logger.vision_monitor_selected",
+                        params={
+                            "index": selected_monitor_idx,
+                            "capture_mode": capture_mode,
+                        },
+                        default="[Vision] Monitor selected for capture (index {index}, mode {capture_mode})",
+                    )
+                    print(message_monitor_selected)
                     log_audit_entry(
                         "vision_monitor_selected",
-                        "[Vision] Monitor selected for capture",
+                        message_monitor_selected,
                         AuditStatus.INFO,
                         details={
                             "capture_mode": capture_mode,
                             "index": selected_monitor_idx,
                             "mss_index": selected_monitor_mss_idx,
                             "monitor": monitor,
+                        },
+                        message_key="logger.vision_monitor_selected",
+                        message_args={
+                            "index": selected_monitor_idx,
+                            "capture_mode": capture_mode,
                         },
                     )
 
@@ -172,14 +229,28 @@ class ScreenCapturer:
                             if window_info:
                                 current_monitor = window_info["rect"]
                                 if last_window_hwnd != window_info.get("hwnd"):
+                                    message_window_selected = get_text(
+                                        "logger.vision_window_selected",
+                                        params={
+                                            "title": window_info.get("title", ""),
+                                            "process": window_info.get("process", ""),
+                                        },
+                                        default="[Vision] Window selected for capture: {title} ({process})",
+                                    )
+                                    print(message_window_selected)
                                     log_audit_entry(
                                         "vision_window_selected",
-                                        "[Vision] Window selected for capture",
+                                        message_window_selected,
                                         AuditStatus.INFO,
                                         details={
                                             "title": window_info.get("title"),
                                             "process": window_info.get("process"),
                                             "rect": current_monitor,
+                                        },
+                                        message_key="logger.vision_window_selected",
+                                        message_args={
+                                            "title": window_info.get("title", ""),
+                                            "process": window_info.get("process", ""),
                                         },
                                     )
                                 last_window_hwnd = window_info.get("hwnd")
@@ -187,11 +258,25 @@ class ScreenCapturer:
                             else:
                                 current_monitor = selected_monitor
                                 if not window_not_found_logged:
+                                    message_window_not_found = get_text(
+                                        "logger.vision_window_not_found",
+                                        params={
+                                            "title": window_title,
+                                            "process": window_process,
+                                        },
+                                        default="[Vision] Window not found, falling back to monitor capture",
+                                    )
+                                    print(message_window_not_found)
                                     log_audit_entry(
                                         "vision_window_not_found",
-                                        "[Vision] Window not found, falling back to monitor capture",
+                                        message_window_not_found,
                                         AuditStatus.WARNING,
                                         details={"title": window_title, "process": window_process},
+                                        message_key="logger.vision_window_not_found",
+                                        message_args={
+                                            "title": window_title,
+                                            "process": window_process,
+                                        },
                                     )
                                     window_not_found_logged = True
                                     last_window_hwnd = None
@@ -200,9 +285,15 @@ class ScreenCapturer:
                             if not window_not_found_logged:
                                 log_audit_entry(
                                     "vision_capture_mode_unknown",
-                                    "[Vision] Unknown capture mode, using monitor",
+                                    get_text(
+                                        "logger.vision_capture_mode_unknown",
+                                        params={"capture_mode": capture_mode},
+                                        default="[Vision] Unknown capture mode '{capture_mode}', using monitor",
+                                    ),
                                     AuditStatus.WARNING,
                                     details={"capture_mode": capture_mode},
+                                    message_key="logger.vision_capture_mode_unknown",
+                                    message_args={"capture_mode": capture_mode},
                                 )
                                 window_not_found_logged = True
 
@@ -225,16 +316,32 @@ class ScreenCapturer:
                         time.sleep(1.0 / fps)
 
                     except Exception as e:
+                        error_message = get_text(
+                            "logger.vision_capture_error",
+                            params={"error": str(e)},
+                            default="[Vision] Capture error: {error}",
+                        )
+                        print(error_message)
                         log_audit_entry(
                             "vision_capture_error",
-                            f"[Vision] Capture error: {e}",
+                            error_message,
                             AuditStatus.ERROR,
+                            message_args={"error": str(e)},
                         )
                         time.sleep(0.1)
 
         except Exception as e:
+            fatal_message = get_text(
+                "logger.vision_fatal_error",
+                params={"error": str(e)},
+                default="[Vision] Fatal error: {error}",
+            )
+            print(fatal_message)
             log_audit_entry(
-                "vision_fatal_error", f"[Vision] Fatal error: {e}", AuditStatus.ERROR
+                "vision_fatal_error",
+                fatal_message,
+                AuditStatus.ERROR,
+                message_args={"error": str(e)},
             )
 
 

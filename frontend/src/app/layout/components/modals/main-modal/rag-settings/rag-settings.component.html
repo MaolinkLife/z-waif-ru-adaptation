@@ -129,6 +129,370 @@
             </div>
         </div>
 
+        <!-- Hybrid Retrieval -->
+        <div class="section">
+            <h3>Hybrid Retrieval</h3>
+
+            <div class="form-group">
+                <label for="retrievalRecentLimit">Recent history limit</label>
+                <input
+                    id="retrievalRecentLimit"
+                    type="number"
+                    formControlName="retrievalRecentLimit"
+                    min="1"
+                    max="100"
+                />
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="checkbox">
+                        <input
+                            type="checkbox"
+                            formControlName="retrievalSessionEnabled"
+                        />
+                        Merge session messages
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label for="retrievalSessionWindow">Session window</label>
+                    <input
+                        id="retrievalSessionWindow"
+                        type="text"
+                        formControlName="retrievalSessionWindow"
+                        placeholder="day"
+                    />
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h4>Keyword search</h4>
+                <div class="form-group">
+                    <label class="checkbox">
+                        <input
+                            type="checkbox"
+                            formControlName="retrievalKeywordEnabled"
+                        />
+                        Enable keyword re-ranking
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label for="retrievalKeywordMaxCandidates">Max candidates</label>
+                    <input
+                        id="retrievalKeywordMaxCandidates"
+                        type="number"
+                        formControlName="retrievalKeywordMaxCandidates"
+                        min="1"
+                        max="32"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="retrievalKeywordMinScore">Min score</label>
+                    <input
+                        id="retrievalKeywordMinScore"
+                        type="number"
+                        formControlName="retrievalKeywordMinScore"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="retrievalKeywordMinOverlap">Min overlap</label>
+                    <input
+                        id="retrievalKeywordMinOverlap"
+                        type="number"
+                        formControlName="retrievalKeywordMinOverlap"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="retrievalKeywordBoostUser">User weight</label>
+                    <input
+                        id="retrievalKeywordBoostUser"
+                        type="number"
+                        formControlName="retrievalKeywordBoostUser"
+                        min="0"
+                        max="3"
+                        step="0.01"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="retrievalKeywordBoostAssistant">Assistant weight</label>
+                    <input
+                        id="retrievalKeywordBoostAssistant"
+                        type="number"
+                        formControlName="retrievalKeywordBoostAssistant"
+                        min="0"
+                        max="3"
+                        step="0.01"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="retrievalKeywordStopwords">Stopwords (comma separated)</label>
+                    <textarea
+                        id="retrievalKeywordStopwords"
+                        rows="2"
+                        formControlName="retrievalKeywordStopwords"
+                        placeholder="and, the, это"
+                    ></textarea>
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h4>Vector profiles</h4>
+                <div class="form-group">
+                    <label for="primaryVector">Primary vector</label>
+                    <select id="primaryVector" formControlName="primaryVector">
+                        <option
+                            *ngFor="let profileCtrl of vectorProfilesControls"
+                            [value]="profileCtrl.value.key"
+                        >
+                            {{ profileCtrl.value.label || profileCtrl.value.key }}
+                        </option>
+                    </select>
+                </div>
+                <div formArrayName="vectorProfiles">
+                <div
+                    class="vector-profile"
+                    *ngIf="vectorProfilesControls.length === 0"
+                >
+                    <p class="muted">No vector profiles configured.</p>
+                </div>
+                <div
+                    class="vector-profile"
+                    *ngFor="let profileCtrl of vectorProfilesControls; let i = index"
+                    [formGroupName]="i"
+                >
+                    <input type="hidden" formControlName="key" />
+                    <h5>{{ profileCtrl.value.key }}</h5>
+                    <div class="form-group">
+                        <label class="checkbox">
+                            <input type="checkbox" formControlName="enabled" />
+                            Enabled
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label for="vectorLabel-{{ i }}">Label</label>
+                        <input
+                            id="vectorLabel-{{ i }}"
+                            type="text"
+                            formControlName="label"
+                            placeholder="Display name"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label for="vectorProvider-{{ i }}">Provider</label>
+                        <input
+                            id="vectorProvider-{{ i }}"
+                            type="text"
+                            formControlName="provider"
+                            placeholder="ollama/st"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label for="vectorModel-{{ i }}">Model</label>
+                        <input
+                            id="vectorModel-{{ i }}"
+                            type="text"
+                            formControlName="model"
+                            placeholder="nomic-embed-text"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label for="vectorTopK-{{ i }}">Top K</label>
+                        <input
+                            id="vectorTopK-{{ i }}"
+                            type="number"
+                            formControlName="topK"
+                            min="1"
+                            max="32"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label for="vectorThreshold-{{ i }}">Threshold</label>
+                        <input
+                            id="vectorThreshold-{{ i }}"
+                            type="number"
+                            formControlName="threshold"
+                            min="0"
+                            max="1"
+                            step="0.01"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label for="vectorEndpoint-{{ i }}">Endpoint / URL</label>
+                        <input
+                            id="vectorEndpoint-{{ i }}"
+                            type="text"
+                            formControlName="endpoint"
+                            placeholder="http://localhost:11434/api/embeddings"
+                        />
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="vectorTimeout-{{ i }}">Timeout (s)</label>
+                            <input
+                                id="vectorTimeout-{{ i }}"
+                                type="number"
+                                formControlName="timeout"
+                                min="0"
+                                step="1"
+                            />
+                        </div>
+                        <div class="form-group">
+                            <label for="vectorMaxRetries-{{ i }}">Max retries</label>
+                            <input
+                                id="vectorMaxRetries-{{ i }}"
+                                type="number"
+                                formControlName="maxRetries"
+                                min="0"
+                                step="1"
+                            />
+                        </div>
+                        <div class="form-group">
+                            <label for="vectorRetryBackoff-{{ i }}">Retry backoff</label>
+                            <input
+                                id="vectorRetryBackoff-{{ i }}"
+                                type="number"
+                                formControlName="retryBackoff"
+                                min="0"
+                                step="0.01"
+                            />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="vectorDevice-{{ i }}">Device override</label>
+                        <input
+                            id="vectorDevice-{{ i }}"
+                            type="text"
+                            formControlName="device"
+                            placeholder="cpu / cuda"
+                        />
+                    </div>
+                </div>
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h4>Short-term memory</h4>
+                <div class="form-group">
+                    <label class="checkbox">
+                        <input type="checkbox" formControlName="shortTermEnabled" />
+                        Enable short-term lookup
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label for="shortTermThreshold">Similarity threshold</label>
+                    <input
+                        id="shortTermThreshold"
+                        type="number"
+                        formControlName="shortTermThreshold"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                    />
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h4>Rerank</h4>
+                <div class="form-group">
+                    <label class="checkbox">
+                        <input type="checkbox" formControlName="rerankEnabled" />
+                        Enable hybrid rerank
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label for="rerankTopN">Top N</label>
+                    <input
+                        id="rerankTopN"
+                        type="number"
+                        formControlName="rerankTopN"
+                        min="1"
+                        max="32"
+                    />
+                </div>
+                <div class="form-group">
+                    <label class="checkbox">
+                        <input type="checkbox" formControlName="rerankUsePrimary" />
+                        Re-embed with primary vector
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label for="rerankBoostRecency">Recency boost</label>
+                    <input
+                        id="rerankBoostRecency"
+                        type="number"
+                        formControlName="rerankBoostRecency"
+                        min="0"
+                        max="2"
+                        step="0.01"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="rerankWeightEmbedding">Weight · embeddings</label>
+                    <input
+                        id="rerankWeightEmbedding"
+                        type="number"
+                        formControlName="rerankWeightEmbedding"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="rerankWeightKeyword">Weight · keyword</label>
+                    <input
+                        id="rerankWeightKeyword"
+                        type="number"
+                        formControlName="rerankWeightKeyword"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="rerankWeightShortTerm">Weight · short-term</label>
+                    <input
+                        id="rerankWeightShortTerm"
+                        type="number"
+                        formControlName="rerankWeightShortTerm"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                    />
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h4>Lorebook</h4>
+                <div class="form-group">
+                    <label for="loreTopK">Lore entries (top K)</label>
+                    <input
+                        id="loreTopK"
+                        type="number"
+                        formControlName="loreTopK"
+                        min="1"
+                        max="10"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="loreSimilarityThreshold">Lore similarity</label>
+                    <input
+                        id="loreSimilarityThreshold"
+                        type="number"
+                        formControlName="loreSimilarityThreshold"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                    />
+                </div>
+            </div>
+        </div>
+
         <!-- Search Strategy -->
         <div class="section">
             <h3>{{ "settings.searchStrategy" | translate }}</h3>

@@ -51,7 +51,9 @@ export class AudioSettingsComponent implements OnInit {
             vadThreshold: [0.5],
             silenceTimeout: [3.0],
             minAudioLength: [0.5],
-            maxAudioLength: [30.0]
+            maxAudioLength: [30.0],
+            triggerWords: [[]],
+            ignoreTriggerWords: [true]
         });
     }
 
@@ -64,8 +66,8 @@ export class AudioSettingsComponent implements OnInit {
             map(([config, devices]) => {
                 // Load config
                 if (config && config.audio) {
-                    this.originalConfig = { ...config.audio };
-                    this.audioForm.patchValue(config.audio);
+                    this.originalConfig = this.normalizeAudioPayload(config.audio);
+                    this.audioForm.patchValue(this.originalConfig);
                 }
 
                 // Load devices
@@ -88,13 +90,13 @@ export class AudioSettingsComponent implements OnInit {
     }
 
     saveChanges(): void {
-        const changes = this.getChanges();
-        if (Object.keys(changes).length > 0) {
-            const updateData = { audio: changes };
+        const normalized = this.normalizeAudioPayload(this.audioForm.value);
+        if (this.hasPayloadChanged(normalized)) {
+            const updateData = { audio: normalized };
             this.configService.updateConfig$(updateData).subscribe({
                 next: (response) => {
                     console.log('Audio settings updated:', response);
-                    this.originalConfig = { ...this.audioForm.value };
+                    this.originalConfig = normalized;
                 },
                 error: (error) => {
                     console.error('Error updating audio settings:', error);
@@ -103,21 +105,36 @@ export class AudioSettingsComponent implements OnInit {
         }
     }
 
-    private getChanges(): any {
-        const current = this.audioForm.value;
-        const changes: any = {};
-
-        Object.keys(current).forEach(key => {
-            const originalValue = this.originalConfig ? this.originalConfig[key] : undefined;
-            if (current[key] !== originalValue) {
-                changes[key] = current[key];
-            }
-        });
-
-        return changes;
+    private hasPayloadChanged(current: any): boolean {
+        return JSON.stringify(current) !== JSON.stringify(this.originalConfig);
     }
 
     hasChanges(): boolean {
-        return Object.keys(this.getChanges()).length > 0;
+        const normalized = this.normalizeAudioPayload(this.audioForm.value);
+        return this.hasPayloadChanged(normalized);
+    }
+
+    private normalizeAudioPayload(source: any): any {
+        const toNumber = (value: any, fallback: number) => {
+            if (value === null || value === undefined || value === '') {
+                return fallback;
+            }
+            const num = Number(value);
+            return Number.isFinite(num) ? num : fallback;
+        };
+
+        return {
+            inputDeviceId: toNumber(source?.inputDeviceId, 0),
+            sampleRate: toNumber(source?.sampleRate, 16000),
+            channels: toNumber(source?.channels, 1),
+            chunkSize: toNumber(source?.chunkSize, 1024),
+            enableVad: !!source?.enableVad,
+            vadThreshold: Number(source?.vadThreshold ?? 0.5),
+            silenceTimeout: Number(source?.silenceTimeout ?? 3.0),
+            minAudioLength: Number(source?.minAudioLength ?? 0.5),
+            maxAudioLength: Number(source?.maxAudioLength ?? 30.0),
+            triggerWords: Array.isArray(source?.triggerWords) ? source.triggerWords : [],
+            ignoreTriggerWords: source?.ignoreTriggerWords ?? true,
+        };
     }
 }

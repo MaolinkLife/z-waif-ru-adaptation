@@ -1,4 +1,14 @@
-from sqlalchemy import Column, String, Text, DateTime, ForeignKey, Boolean, Integer
+from sqlalchemy import (
+    Column,
+    String,
+    Text,
+    DateTime,
+    ForeignKey,
+    Boolean,
+    Integer,
+    Float,
+    Date,
+)
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 import uuid
@@ -148,3 +158,67 @@ class LorebookEntry(Base):
         default=datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
     )
+
+
+class EmotionalTrace(Base):
+    __tablename__ = "emotional_traces"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    character_id = Column(String, ForeignKey("characters.id"), nullable=False)
+    message_id = Column(String, ForeignKey("history.id", ondelete="SET NULL"))
+    trigger_role = Column(String, nullable=False, default="assistant")
+    primary_emotion = Column(String, nullable=False, default="neutral")
+    secondary_emotion = Column(String, nullable=True)
+    intensity = Column(Float, default=0.0)
+    emotion_vector = Column(Text, default="{}")  # JSON blob with intensities
+    user_tone = Column(String, nullable=True)
+    cause = Column(Text, nullable=True)
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+
+    character = relationship("Character")
+    message = relationship("History")
+
+
+class DailyMoralSummary(Base):
+    __tablename__ = "daily_moral_summaries"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    character_id = Column(String, ForeignKey("characters.id"), nullable=False)
+    date = Column(Date, nullable=False)
+    dominant_emotion = Column(String, nullable=False, default="neutral")
+    average_intensity = Column(Float, default=0.0)
+    emotion_vector = Column(Text, default="{}")
+    trust = Column(Float, default=0.5)
+    stability = Column(Float, default=0.5)
+    sociability = Column(Float, default=0.5)
+    resentment = Column(Float, default=0.0)
+    summary = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    updated_at = Column(
+        DateTime,
+        default=datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    character = relationship("Character")
+
+
+class MoralStateSnapshot(Base):
+    __tablename__ = "moral_state_snapshots"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    character_id = Column(String, ForeignKey("characters.id"), nullable=False)
+    message_id = Column(String, ForeignKey("history.id", ondelete="SET NULL"))
+    trust = Column(Float, default=0.5)
+    stability = Column(Float, default=0.5)
+    sociability = Column(Float, default=0.5)
+    resentment = Column(Float, default=0.0)
+    mood = Column(String, nullable=False, default="neutral")
+    recommendations = Column(Text, default="[]")  # JSON array
+    hard_directives = Column(Text, default="[]")  # JSON array
+    meta = Column(Text, default="{}")
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+
+    character = relationship("Character")
+    message = relationship("History")

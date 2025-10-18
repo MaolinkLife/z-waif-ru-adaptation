@@ -109,27 +109,51 @@ export class ChatComponent implements OnInit, OnDestroy {
                     }
                     break;
 
-                case 'message':
+                case 'message': {
+                    const normalizedMedia = this.normalizeMediaList(event.media);
                     if (this.currentStreamingMessage) {
                         this.currentStreamingMessage.id = event.id || this.currentStreamingMessage.id;
                         this.currentStreamingMessage.isPending = false;
                         this.currentStreamingMessage.content = event.content;
+                        if (event.timestamp) {
+                            this.currentStreamingMessage.timestamp = event.timestamp;
+                        }
                         if (event.media !== undefined) {
-                            this.currentStreamingMessage.media = this.normalizeMediaList(event.media);
+                            this.currentStreamingMessage.media = normalizedMedia;
                         }
                         this.currentStreamingMessage = null;
+                    } else if (event.role === 'user') {
+                        const messageIndex = this.chatHistory.findIndex(m => m.id === event.id);
+                        if (messageIndex !== -1) {
+                            const existingMessage = this.chatHistory[messageIndex];
+                            existingMessage.role = event.role;
+                            existingMessage.content = event.content;
+                            existingMessage.isPending = false;
+                            existingMessage.timestamp = event.timestamp || existingMessage.timestamp || new Date().toISOString();
+                            existingMessage.media = normalizedMedia;
+                        } else {
+                            this.chatHistory.push({
+                                id: event.id,
+                                role: event.role,
+                                content: event.content,
+                                timestamp: event.timestamp || new Date().toISOString(),
+                                isPending: false,
+                                media: normalizedMedia,
+                            });
+                        }
                     } else {
                         this.chatHistory.push({
                             id: event.id,
                             role: event.role,
                             content: event.content,
-                            timestamp: new Date().toISOString(),
+                            timestamp: event.timestamp || new Date().toISOString(),
                             isPending: false,
-                            media: this.normalizeMediaList(event.media),
+                            media: normalizedMedia,
                         });
                     }
                     this.loading = false;
                     break;
+                }
 
                 case 'history':
                     const newMessages = event.items.map((m: any) => ({
@@ -191,11 +215,31 @@ export class ChatComponent implements OnInit, OnDestroy {
                 case 'system':
                     if (event.event === 'typing_start') {
                         this.loading = true;
-                    } else if (event.event === 'stream_end') {
+                    } else if (event.event === 'typing_end') {
                         this.loading = false;
                         this.currentStreamingMessage = null;
                     }
                     break;
+
+                case 'message_end': {
+                    const targetId = event.id || this.currentStreamingMessage?.id;
+                    if (targetId) {
+                        const messageIndex = this.chatHistory.findIndex(m => m.id === targetId);
+                        if (messageIndex !== -1) {
+                            const message = this.chatHistory[messageIndex];
+                            message.isPending = false;
+                            if (event.provider) {
+                                (message as any).provider = event.provider;
+                            }
+                            if (typeof event.reasoning === 'string') {
+                                (message as any).reasoning = event.reasoning;
+                            }
+                        }
+                    }
+                    this.currentStreamingMessage = null;
+                    this.loading = false;
+                    break;
+                }
 
                 case 'error':
                     console.error('[WS] ❌ Error from server:', event.message);
@@ -385,14 +429,16 @@ export class ChatComponent implements OnInit, OnDestroy {
                     return null;
                 }
 
-                const { userName, charName } = config;
+                const system = config.system || {} as ProjectConfig['system'];
+                const userName = system.userName || '';
+                const charName = system.charName || '';
                 this.userName = userName;
                 this.charName = charName;
 
                 return {
                     userName,
                     charName
-                }
+                };
             })
         )
     }

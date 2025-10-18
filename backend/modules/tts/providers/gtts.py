@@ -50,7 +50,7 @@ class GTTSProvider(TTSProvider):
         print("[GTTSProvider] Запущен модуль gTTS, запустили проверку конфигурации.")
         log_audit_entry(
             "gtts_provider_init",
-            "[GTTSProvider/Init] Провайдер gTTS инициализирован.",
+            "[GTTSProvider] Провайдер gTTS инициализирован.",
             AuditStatus.INFO,
             details={
                 "language": self._language,
@@ -62,10 +62,12 @@ class GTTSProvider(TTSProvider):
         )
 
         if not GTTS_AVAILABLE:
-            print("[GTTSProvider] Библиотека gTTS не найдена, будет использован fallback.")
+            print(
+                "[GTTSProvider] Библиотека gTTS не найдена, будет использован fallback."
+            )
             log_audit_entry(
                 "gtts_library_missing",
-                "[GTTSProvider/Init] gTTS недоступен, активируем fallback.",
+                "[GTTSProvider] gTTS недоступен, активируем fallback.",
                 AuditStatus.WARNING,
                 details={"gtts_installed": GTTS_AVAILABLE},
             )
@@ -80,7 +82,7 @@ class GTTSProvider(TTSProvider):
         print("[GTTSProvider] Инициализация fallback-провайдера pyttsx3.")
         log_audit_entry(
             "gtts_fallback_init",
-            "[GTTSProvider/Fallback] Инициализация pyttsx3 fallback.",
+            "[GTTSProvider] Инициализация pyttsx3 fallback.",
             AuditStatus.INFO,
             details={"fallback_voice": self._fallback_voice},
         )
@@ -94,7 +96,7 @@ class GTTSProvider(TTSProvider):
             )
             log_audit_entry(
                 "gtts_fallback_init_failed",
-                "[GTTSProvider/Fallback] Ошибка инициализации pyttsx3 fallback.",
+                "[GTTSProvider] Ошибка инициализации pyttsx3 fallback.",
                 AuditStatus.ERROR,
                 details={"error": str(exc)},
             )
@@ -110,7 +112,7 @@ class GTTSProvider(TTSProvider):
 
         log_audit_entry(
             "gtts_availability_check",
-            "[GTTSProvider/Availability] Проверка доступности провайдера.",
+            "[GTTSProvider] Проверка доступности провайдера.",
             AuditStatus.INFO if available else AuditStatus.WARNING,
             details={
                 "gtts_installed": GTTS_AVAILABLE,
@@ -126,7 +128,7 @@ class GTTSProvider(TTSProvider):
 
         log_audit_entry(
             "gtts_synthesis_start",
-            "[GTTSProvider/Synthesis] Старт синтеза речи.",
+            "[GTTSProvider] Старт синтеза речи.",
             AuditStatus.INFO,
             details={
                 "text_length": len(request.text),
@@ -153,7 +155,7 @@ class GTTSProvider(TTSProvider):
                 print("[GTTSProvider] Выполняем генерацию через gTTS.")
                 log_audit_entry(
                     "gtts_primary_attempt",
-                    "[GTTSProvider/Synthesis] Попытка синтеза через gTTS.",
+                    "[GTTSProvider] Попытка синтеза через gTTS.",
                     AuditStatus.INFO,
                     details={
                         "temp_path": tmp_path,
@@ -176,7 +178,7 @@ class GTTSProvider(TTSProvider):
                 print("[GTTSProvider] Синтез через gTTS выполнен успешно.")
                 log_audit_entry(
                     "gtts_primary_success",
-                    "[GTTSProvider/Synthesis] Синтез gTTS завершён.",
+                    "[GTTSProvider] Синтез gTTS завершён.",
                     AuditStatus.SUCCESS,
                     details={
                         "output_path": output_path,
@@ -196,7 +198,7 @@ class GTTSProvider(TTSProvider):
                 print("[GTTSProvider] Ошибка синтеза через gTTS:", primary_error)
                 log_audit_entry(
                     "gtts_primary_failed",
-                    "[GTTSProvider/Synthesis] Ошибка синтеза через gTTS.",
+                    "[GTTSProvider] Ошибка синтеза через gTTS.",
                     AuditStatus.ERROR,
                     details={
                         "error": primary_error,
@@ -210,14 +212,14 @@ class GTTSProvider(TTSProvider):
                         os.remove(tmp_path)
                         log_audit_entry(
                             "gtts_temp_cleanup",
-                            "[GTTSProvider/Synthesis] Удаление временного файла.",
+                            "[GTTSProvider] Удаление временного файла.",
                             AuditStatus.INFO,
                             details={"temp_path": tmp_path},
                         )
                     except OSError as exc:
                         log_audit_entry(
                             "gtts_temp_cleanup_failed",
-                            "[GTTSProvider/Synthesis] Не удалось удалить временный файл.",
+                            "[GTTSProvider] Не удалось удалить временный файл.",
                             AuditStatus.WARNING,
                             details={"temp_path": tmp_path, "error": str(exc)},
                         )
@@ -225,7 +227,7 @@ class GTTSProvider(TTSProvider):
             primary_error = "gTTS library is not installed"
             log_audit_entry(
                 "gtts_primary_skipped",
-                "[GTTSProvider/Synthesis] gTTS недоступен, переходим к fallback.",
+                "[GTTSProvider] gTTS недоступен, переходим к fallback.",
                 AuditStatus.WARNING,
                 details={"reason": primary_error},
             )
@@ -236,7 +238,7 @@ class GTTSProvider(TTSProvider):
             print("[GTTSProvider] Запускаем fallback синтез через pyttsx3.")
             log_audit_entry(
                 "gtts_fallback_attempt",
-                "[GTTSProvider/Fallback] Запуск fallback через pyttsx3.",
+                "[GTTSProvider] Запуск fallback через pyttsx3.",
                 AuditStatus.INFO,
                 details={
                     "reason": primary_error,
@@ -251,7 +253,7 @@ class GTTSProvider(TTSProvider):
 
                 log_audit_entry(
                     "gtts_fallback_success",
-                    "[GTTSProvider/Fallback] pyttsx3 fallback завершился успешно.",
+                    "[GTTSProvider] pyttsx3 fallback завершился успешно.",
                     AuditStatus.SUCCESS,
                     details={
                         "output_path": output_path,
@@ -268,7 +270,7 @@ class GTTSProvider(TTSProvider):
                 )
                 log_audit_entry(
                     "gtts_fallback_failed",
-                    "[GTTSProvider/Fallback] Ошибка синтеза через pyttsx3.",
+                    "[GTTSProvider] Ошибка синтеза через pyttsx3.",
                     AuditStatus.ERROR,
                     details={
                         "primary_error": primary_error,
@@ -286,7 +288,7 @@ class GTTSProvider(TTSProvider):
         )
         log_audit_entry(
             "gtts_no_fallback_available",
-            "[GTTSProvider/Fallback] Нет доступного fallback для синтеза.",
+            "[GTTSProvider] Нет доступного fallback для синтеза.",
             AuditStatus.ERROR,
             details={
                 "primary_error": primary_error,
@@ -304,11 +306,11 @@ class GTTSProvider(TTSProvider):
             self._offline_provider.shutdown()
             log_audit_entry(
                 "gtts_shutdown_fallback",
-                "[GTTSProvider/Shutdown] Остановлен pyttsx3 fallback.",
+                "[GTTSProvider] Остановлен pyttsx3 fallback.",
                 AuditStatus.INFO,
             )
         log_audit_entry(
             "gtts_shutdown",
-            "[GTTSProvider/Shutdown] Провайдер gTTS остановлен.",
+            "[GTTSProvider] Провайдер gTTS остановлен.",
             AuditStatus.INFO,
         )

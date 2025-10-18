@@ -37,6 +37,18 @@ class GenerationManager:
                 yield provider
 
     def generate(self, request: GenerateRequest) -> GenerateResult:
+        print("[Generator] Поиск провайдера (standard).")
+        request_overview = {
+            "messages": list(request.messages),
+            "options": request.options,
+            "metadata": request.metadata,
+        }
+        log_audit_entry(
+            event_type="generator_generate_start",
+            msg="[Generator] Запрос генерации (standard) отправлен менеджеру.",
+            status=AuditStatus.INFO,
+            details=request_overview,
+        )
         errors: List[dict] = []
 
         for provider in self._iter_providers():
@@ -49,8 +61,9 @@ class GenerationManager:
                     event_type="generator_provider_resolved",
                     msg="[Generator] Провайдер выбран",
                     status=AuditStatus.INFO,
-                    details={"provider": provider.name},
+                    details={"provider": provider.name, "mode": "standard"},
                 )
+                print(f"[Generator] Провайдер '{provider.name}' выбран (standard).")
                 return result
             except ProviderError as exc:
                 errors.append({"provider": provider.name, "reason": str(exc)})
@@ -58,12 +71,36 @@ class GenerationManager:
                     event_type="generator_provider_error",
                     msg="[Generator] Ошибка провайдера",
                     status=AuditStatus.ERROR,
-                    details={"provider": provider.name, "error": str(exc)},
+                    details={
+                        "provider": provider.name,
+                        "error": str(exc),
+                        "mode": "standard",
+                    },
                 )
+                print(f"[Generator] Провайдер '{provider.name}' отказал (standard).")
 
+        log_audit_entry(
+            event_type="generator_provider_exhausted",
+            msg="[Generator] Все провайдеры отклонили запрос (standard).",
+            status=AuditStatus.ERROR,
+            details={"errors": errors},
+        )
+        print("[Generator] Все провайдеры отказали (standard).")
         raise NoProviderResolved(str(errors))
 
     async def stream(self, request: GenerateRequest) -> AsyncIterator[GenerateStreamChunk]:
+        print("[Generator] Поиск провайдера (stream).")
+        request_overview = {
+            "messages": list(request.messages),
+            "options": request.options,
+            "metadata": request.metadata,
+        }
+        log_audit_entry(
+            event_type="generator_stream_start",
+            msg="[Generator] Запрос генерации (stream) отправлен менеджеру.",
+            status=AuditStatus.INFO,
+            details=request_overview,
+        )
         errors: List[dict] = []
 
         for provider in self._iter_providers():
@@ -80,8 +117,9 @@ class GenerationManager:
                     event_type="generator_provider_stream_resolved",
                     msg="[Generator] Потоковый провайдер выбран",
                     status=AuditStatus.INFO,
-                    details={"provider": provider.name},
+                    details={"provider": provider.name, "mode": "stream"},
                 )
+                print(f"[Generator] Провайдер '{provider.name}' выбран (stream).")
                 return
             except ProviderError as exc:
                 errors.append({"provider": provider.name, "reason": str(exc)})
@@ -89,10 +127,24 @@ class GenerationManager:
                     event_type="generator_provider_stream_error",
                     msg="[Generator] Ошибка потокового провайдера",
                     status=AuditStatus.ERROR,
-                    details={"provider": provider.name, "error": str(exc)},
+                    details={
+                        "provider": provider.name,
+                        "error": str(exc),
+                        "mode": "stream",
+                    },
+                )
+                print(
+                    f"[Generator] Провайдер '{provider.name}' отказал (stream)."
                 )
                 continue
 
+        log_audit_entry(
+            event_type="generator_provider_stream_exhausted",
+            msg="[Generator] Все потоковые провайдеры отклонили запрос.",
+            status=AuditStatus.ERROR,
+            details={"errors": errors},
+        )
+        print("[Generator] Все провайдеры отказали (stream).")
         raise NoProviderResolved(str(errors))
 
 

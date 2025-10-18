@@ -47,7 +47,7 @@ class OpenRouterAnalyzerProvider(AnalyzerProvider):
         if not api_key:
             log_audit_entry(
                 "analyzer_openrouter_skipped",
-                "[Analyzer/OpenRouter] Skipped: API key missing.",
+                "[Analyzer] Skipped: API key missing.",
                 AuditStatus.INFO,
             )
             return None
@@ -55,7 +55,7 @@ class OpenRouterAnalyzerProvider(AnalyzerProvider):
         try:
             log_audit_entry(
                 "analyzer_openrouter_start",
-                "[Analyzer/OpenRouter] Starting analysis.",
+                "[Analyzer] Starting analysis.",
                 AuditStatus.INFO,
                 details={
                     "model": settings["model"],
@@ -72,7 +72,7 @@ class OpenRouterAnalyzerProvider(AnalyzerProvider):
 
             log_audit_entry(
                 "analyzer_openrouter_success",
-                "[Analyzer/OpenRouter] Analysis completed successfully.",
+                "[Analyzer] Analysis completed successfully.",
                 AuditStatus.SUCCESS,
             )
             return result
@@ -80,7 +80,7 @@ class OpenRouterAnalyzerProvider(AnalyzerProvider):
         except Exception as exc:  # pragma: no cover
             log_audit_entry(
                 "analyzer_openrouter_error",
-                "[Analyzer/OpenRouter] Error during analysis.",
+                "[Analyzer] Error during analysis.",
                 AuditStatus.ERROR,
                 details={"error": str(exc), "error_type": type(exc).__name__},
             )

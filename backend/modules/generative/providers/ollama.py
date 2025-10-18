@@ -3,7 +3,11 @@ from __future__ import annotations
 from typing import Any, AsyncIterator, Dict, Iterable, List
 
 from modules.generative.providers.base import GenerateProvider, ProviderError
-from modules.generative.types import GenerateRequest, GenerateResult, GenerateStreamChunk
+from modules.generative.types import (
+    GenerateRequest,
+    GenerateResult,
+    GenerateStreamChunk,
+)
 from modules.ollama import client as ollama_client
 from services.config_service import get_config_value
 from services.logger_service import AuditStatus, log_audit_entry
@@ -37,11 +41,17 @@ class OllamaGenerateProvider(GenerateProvider):
 
         messages = self._ensure_list(request.messages)
 
+        print("[Generator] Ollama: синхронная генерация.")
         log_audit_entry(
             event_type="generator_ollama_start",
-            msg="[Generator/Ollama] Запуск синхронной генерации",
+            msg="[Generator] Запуск синхронной генерации",
             status=AuditStatus.INFO,
-            details={"model": model},
+            details={
+                "model": model,
+                "messages": messages,
+                "options": request.options,
+                "metadata": request.metadata,
+            },
         )
 
         raw = ollama_client.chat(messages, request.options, model=model)
@@ -49,10 +59,15 @@ class OllamaGenerateProvider(GenerateProvider):
 
         log_audit_entry(
             event_type="generator_ollama_success",
-            msg="[Generator/Ollama] Генерация завершена",
+            msg="[Generator] Генерация завершена",
             status=AuditStatus.SUCCESS,
-            details={"model": model},
+            details={
+                "model": model,
+                "response": raw,
+                "content_length": len(content),
+            },
         )
+        print("[Generator] Ollama: ответ получен.")
 
         return GenerateResult(
             provider=self.name,
@@ -61,7 +76,9 @@ class OllamaGenerateProvider(GenerateProvider):
             metadata={"model": model},
         )
 
-    async def stream(self, request: GenerateRequest) -> AsyncIterator[GenerateStreamChunk]:
+    async def stream(
+        self, request: GenerateRequest
+    ) -> AsyncIterator[GenerateStreamChunk]:
         cfg = self._get_provider_config()
         model = cfg.get("model")
         if not model:
@@ -69,19 +86,41 @@ class OllamaGenerateProvider(GenerateProvider):
 
         messages = self._ensure_list(request.messages)
 
+        print("[Generator] Ollama: потоковая генерация.")
         log_audit_entry(
             event_type="generator_ollama_stream_start",
-            msg="[Generator/Ollama] Запуск потоковой генерации",
+            msg="[Generator] Запуск потоковой генерации",
             status=AuditStatus.INFO,
-            details={"model": model},
+            details={
+                "model": model,
+                "messages": messages,
+                "options": request.options,
+                "metadata": request.metadata,
+            },
         )
 
-        async for chunk in ollama_client.stream_chat(messages, request.options, model=model):
+        chunk_index = 0
+        async for chunk in ollama_client.stream_chat(
+            messages, request.options, model=model
+        ):
             if not chunk:
                 continue
             if "error" in chunk:
                 raise ProviderError(chunk["error"])
             content = chunk.get("message", {}).get("content", "")
+            chunk_index += 1
+            # log_audit_entry(
+            #     event_type="generator_ollama_stream_chunk",
+            #     msg="[Generator] Получен потоковый chunk от Ollama.",
+            #     status=AuditStatus.INFO,
+            #     details={
+            #         "model": model,
+            #         "index": chunk_index,
+            #         "content": content,
+            #         "done": bool(chunk.get("done")),
+            #         "raw": chunk,
+            #     },
+            # )
             yield GenerateStreamChunk(
                 provider=self.name,
                 content=content,
@@ -92,7 +131,8 @@ class OllamaGenerateProvider(GenerateProvider):
 
         log_audit_entry(
             event_type="generator_ollama_stream_success",
-            msg="[Generator/Ollama] Потоковая генерация завершена",
+            msg="[Generator] Потоковая генерация завершена",
             status=AuditStatus.SUCCESS,
-            details={"model": model},
+            details={"model": model, "chunks": chunk_index},
         )
+        print("[Generator] Ollama: поток завершён.")

@@ -1,0 +1,195 @@
+<ng-container *ngIf="isLoading$ | async; else content">
+    <div class="settings-wrapper">
+        <div class="settings-form">
+            <h2><app-skeleton height="2rem" width="160px"></app-skeleton></h2>
+
+            <div class="section">
+                <h3>
+                    <app-skeleton height="1.5rem" width="140px"></app-skeleton>
+                </h3>
+
+                <div class="form-group checkbox-group">
+                    <app-skeleton height="1.5rem" width="100%"></app-skeleton>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <app-skeleton height="1rem" width="150px"></app-skeleton>
+                    </label>
+                    <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <app-skeleton height="1.5rem" width="100%"></app-skeleton>
+                    <app-skeleton height="1.5rem" width="100%"></app-skeleton>
+                    <app-skeleton height="1.5rem" width="100%"></app-skeleton>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>
+                    <app-skeleton height="1.5rem" width="160px"></app-skeleton>
+                </h3>
+
+                <div class="form-group">
+                    <label>
+                        <app-skeleton height="1rem" width="120px"></app-skeleton>
+                    </label>
+                    <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <app-skeleton height="1rem" width="120px"></app-skeleton>
+                    </label>
+                    <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>
+                    <app-skeleton height="1.5rem" width="160px"></app-skeleton>
+                </h3>
+                <div class="form-group">
+                    <label>
+                        <app-skeleton height="1rem" width="120px"></app-skeleton>
+                    </label>
+                    <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <app-skeleton height="1rem" width="120px"></app-skeleton>
+                    </label>
+                    <app-skeleton height="2.5rem" width="100%"></app-skeleton>
+                </div>
+            </div>
+
+            <div class="button-row">
+                <app-skeleton height="2.5rem" width="180px"></app-skeleton>
+            </div>
+        </div>
+    </div>
+</ng-container>
+
+<ng-template #content>
+    <div class="settings-wrapper">
+        <form [formGroup]="moralForm" (ngSubmit)="saveChanges()" class="settings-form">
+            <h2>❤️ Moral Matrix Settings</h2>
+
+            <div class="section">
+                <h3>General</h3>
+
+                <div class="form-group checkbox-group">
+                    <label class="checkbox">
+                        <input type="checkbox" formControlName="enabled" />
+                        Enable Moral Matrix pipeline
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label for="moralActiveProvider">Active Provider</label>
+                    <select id="moralActiveProvider" formControlName="activeProvider">
+                        <option value="ollama">Ollama</option>
+                        <option value="openrouter">OpenRouter</option>
+                        <option value="heuristic">Heuristic (fallback only)</option>
+                    </select>
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <label class="checkbox">
+                        <input type="checkbox" formControlName="fallbackHeuristic" />
+                        Add Heuristic fallback
+                    </label>
+                    <label class="checkbox">
+                        <input type="checkbox" formControlName="fallbackOllama" />
+                        Add Ollama fallback
+                    </label>
+                    <label class="checkbox">
+                        <input type="checkbox" formControlName="fallbackOpenrouter" />
+                        Add OpenRouter fallback
+                    </label>
+                </div>
+
+                <p class="hint">
+                    The execution chain runs active provider first, then fallbacks in the order they are enabled.
+                </p>
+            </div>
+
+            <div class="section" [formGroup]="providersForm">
+                <h3>Ollama Provider</h3>
+                <div formGroupName="ollama">
+                    <div class="form-group">
+                        <label for="moralOllamaModel">Model</label>
+                        <input id="moralOllamaModel" type="text" formControlName="model" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="moralOllamaTemperature">Temperature</label>
+                        <input
+                            id="moralOllamaTemperature"
+                            type="number"
+                            step="0.1"
+                            min="0"
+                            max="2"
+                            formControlName="temperature"
+                        />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="moralOllamaMaxTokens">Max Tokens</label>
+                        <input
+                            id="moralOllamaMaxTokens"
+                            type="number"
+                            min="1"
+                            max="2048"
+                            formControlName="maxTokens"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <div class="section" [formGroup]="providersForm">
+                <h3>OpenRouter Provider</h3>
+                <div formGroupName="openrouter">
+                    <div class="form-group">
+                        <label for="moralOpenrouterKey">API Key</label>
+                        <input id="moralOpenrouterKey" type="password" formControlName="apiKey" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="moralOpenrouterModel">Model</label>
+                        <input id="moralOpenrouterModel" type="text" formControlName="model" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="moralOpenrouterTemp">Temperature</label>
+                        <input
+                            id="moralOpenrouterTemp"
+                            type="number"
+                            step="0.1"
+                            min="0"
+                            max="2"
+                            formControlName="temperature"
+                        />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="moralOpenrouterTokens">Max Tokens</label>
+                        <input
+                            id="moralOpenrouterTokens"
+                            type="number"
+                            min="1"
+                            max="2048"
+                            formControlName="maxTokens"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-row">
+                <button type="submit" [disabled]="!hasChanges()">💾 Save Moral Settings</button>
+            </div>
+        </form>
+    </div>
+</ng-template>

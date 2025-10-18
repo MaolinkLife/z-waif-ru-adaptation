@@ -2,7 +2,6 @@ import time
 from datetime import datetime, timedelta, timezone
 from dateutil.parser import isoparse
 
-# from services.api_service import run_initiative
 from services.database_service import get_last_messages
 from services.config_service import get_config_value
 from services.logger_service import log_error, log_audit_entry, AuditStatus
@@ -64,7 +63,7 @@ def initiative_monitor():
 
     while True:
         try:
-            char_name = get_config_value("char_name", default="default")
+            char_name = get_config_value("system.char_name", default="default")
             messages = get_last_messages(char_name, limit=10)
 
             if not messages:
@@ -152,7 +151,7 @@ def initiative_monitor():
 
 #     full_prompt = emotion_note + base_prompt
 #     messages = [{"role": "system", "content": full_prompt}]
-#     char_name = get_config_value("char_name", "default")
+#     char_name = get_config_value("system.char_name", "default")
 #     options = get_generation_options_from_config()
 
 #     response = ollama_service.api_standard(messages, options)

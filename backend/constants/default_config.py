@@ -1,13 +1,10 @@
 # Default configuration as dict (for backward compatibility)
 DEFAULT_CONFIG = {
-    "user_id": None,  # Will be set during initialization
-    "char_name": "Character Name",
-    "user_name": "You",
-    "language": "en-US",
     "system": {
-        "user_id": None,
+        "user_id": None,  # Will be set during initialization
         "user_name": "You",
         "char_name": "Character Name",
+        "language": "en-US",
         "system_prompt": "",
         "theme": "default",
     },
@@ -117,6 +114,78 @@ DEFAULT_CONFIG = {
             },
             "graph": {"enabled": True, "relationships": True, "inference": True},
         },
+        "retrieval": {
+            "recent": {"limit": 32},
+            "session": {
+                "enabled": True,
+                "window": "day",
+            },
+            "keyword": {
+                "enabled": True,
+                "max_candidates": 8,
+                "min_score": 0.2,
+                "min_overlap": 0.25,
+                "boost_user": 1.05,
+                "boost_assistant": 0.95,
+                "stopwords": [
+                    "это",
+                    "как",
+                    "или",
+                    "если",
+                    "when",
+                    "then",
+                    "with",
+                    "что",
+                    "and",
+                    "the",
+                ],
+            },
+            "vectors": {
+                "primary": "embed768",
+                "profiles": {
+                    "embed768": {
+                        "label": "768d • nomic-embed-text",
+                        "enabled": True,
+                        "provider": "ollama",
+                        "model": "nomic-embed-text",
+                        "endpoint": "http://localhost:11434/api/embeddings",
+                        "timeout": 30,
+                    "max_retries": 2,
+                    "retry_backoff": 0.75,
+                    "top_k": 8,
+                    "threshold": 0.9,
+                },
+                "embed384": {
+                    "label": "384d • all-MiniLM-L6-v2",
+                    "enabled": True,
+                    "provider": "st",
+                    "model": "all-MiniLM-L6-v2",
+                    "device": "cpu",
+                    "top_k": 10,
+                    "threshold": 0.9,
+                },
+            },
+        },
+        "short_term": {
+            "enabled": True,
+            "threshold": 0.75,
+            },
+            "rerank": {
+                "enabled": True,
+                "top_n": 6,
+                "use_primary_rerank": True,
+                "boost_recency": 0.15,
+                "weights": {
+                    "embedding": 0.65,
+                    "keyword": 0.25,
+                    "short_term": 0.1,
+                },
+            },
+        },
+        "lore": {
+            "top_k": 3,
+            "similarity_threshold": 0.7,
+        },
     },
     "analyzer": {
         "active_provider": "openrouter",
@@ -129,6 +198,21 @@ DEFAULT_CONFIG = {
                 "max_tokens": 1024,
             },
             "ollama": {"model": "llama3.2", "temperature": 0.7, "max_tokens": 1024},
+        },
+    },
+    "moral": {
+        "enabled": True,
+        "active_provider": "ollama",
+        "fallback_order": ["openrouter", "heuristic"],
+        "providers": {
+            "heuristic": {},
+            "ollama": {"model": "llama3.2", "temperature": 0.6, "max_tokens": 512},
+            "openrouter": {
+                "api_key": "",
+                "model": "openai/gpt-4o-mini",
+                "temperature": 0.6,
+                "max_tokens": 512,
+            },
         },
     },
     "memory": {

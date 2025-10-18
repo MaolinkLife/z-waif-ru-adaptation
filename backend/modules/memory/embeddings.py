@@ -7,12 +7,15 @@ import logging
 import os
 import time
 from dataclasses import dataclass
+from functools import lru_cache
 from threading import Lock
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Union
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Union, Any
 
 import requests
 from requests import Response
 from sentence_transformers import SentenceTransformer
+
+from services.config_service import get_config_value
 
 _LOG_LEVEL = os.getenv("EMBED_SVC_LOG_LEVEL", "INFO").upper()
 logging.basicConfig(level=_LOG_LEVEL, format="%(levelname)s %(name)s: %(message)s")
@@ -49,6 +52,64 @@ class STModelError(EmbeddingError):
 
 _st_model_lock = Lock()
 _st_models_cache: Dict[str, SentenceTransformer] = {}
+
+
+def _resolve_profile_settings(profile_name: Optional[str] = None) -> Dict[str, Any]:
+    retrieval_cfg = get_config_value("rag.retrieval", {}) or {}
+    vectors_cfg = retrieval_cfg.get("vectors", {}) if isinstance(retrieval_cfg, dict) else {}
+    profiles_cfg = vectors_cfg.get("profiles", {}) if isinstance(vectors_cfg, dict) else {}
+    if profile_name and profile_name in profiles_cfg:
+        settings = dict(profiles_cfg[profile_name] or {})
+        settings.setdefault("name", profile_name)
+        return settings
+
+    primary_name = vectors_cfg.get("primary")
+    if primary_name and primary_name in profiles_cfg:
+        settings = dict(profiles_cfg[primary_name] or {})
+        settings.setdefault("name", primary_name)
+        return settings
+
+    for name, cfg in profiles_cfg.items():
+        settings = dict(cfg or {})
+        settings.setdefault("name", name)
+        return settings
+
+    return {}
+
+
+def _normalize_ollama_settings(settings: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    cfg = dict(settings or {})
+    url = cfg.get("endpoint") or cfg.get("url") or OLLAMA_URL
+    timeout = float(cfg.get("timeout", cfg.get("ollama_timeout", OLLAMA_TIMEOUT_SEC)))
+    max_retries = int(cfg.get("max_retries", cfg.get("ollama_max_retries", OLLAMA_MAX_RETRIES)))
+    retry_backoff = float(
+        cfg.get("retry_backoff", cfg.get("ollama_retry_backoff", OLLAMA_RETRY_BACKOFF_SEC))
+    )
+    headers = cfg.get("headers")
+    if headers is None and cfg.get("auth_token"):
+        headers = {"Authorization": f"Bearer {cfg['auth_token']}"}
+    verify = cfg.get("verify")
+    request_overrides = cfg.get("request_overrides") or {}
+
+    return {
+        "url": url,
+        "timeout": timeout,
+        "max_retries": max_retries,
+        "retry_backoff": retry_backoff,
+        "headers": headers,
+        "verify": verify,
+        "request_overrides": request_overrides,
+    }
+
+
+def _prepare_settings(
+    settings: Optional[Dict[str, Any]],
+    profile: Optional[str],
+) -> Dict[str, Any]:
+    if settings:
+        return dict(settings)
+    resolved = _resolve_profile_settings(profile)
+    return dict(resolved) if resolved else {}
 
 
 def _should_trust_remote_code(model_name: str) -> bool:
@@ -95,14 +156,27 @@ def _safe_read_text(res: Optional[Response]) -> str:
 
 
 def _post_with_retries(
-    url: str, json_payload: dict, timeout: float, max_retries: int, backoff: float
+    url: str,
+    json_payload: dict,
+    timeout: float,
+    max_retries: int,
+    backoff: float,
+    *,
+    headers: Optional[Dict[str, str]] = None,
+    verify: Optional[bool] = None,
 ) -> Response:
     last_exc: Optional[Exception] = None
     res: Optional[Response] = None
 
     for attempt in range(max_retries + 1):
         try:
-            res = requests.post(url, json=json_payload, timeout=timeout)
+            res = requests.post(
+                url,
+                json=json_payload,
+                timeout=timeout,
+                headers=headers,
+                verify=True if verify is None else verify,
+            )
             if 200 <= res.status_code < 300:
                 return res
             if 400 <= res.status_code < 500:
@@ -126,15 +200,23 @@ def _post_with_retries(
 # Ollama embeddings ---------------------------------------------------------
 
 
-def _ollama_embed_one(text: str, model: str) -> Optional[List[float]]:
+def _ollama_embed_one(
+    text: str,
+    model: str,
+    settings: Optional[Dict[str, Any]] = None,
+) -> Optional[List[float]]:
+    cfg = _normalize_ollama_settings(settings)
     payload = {"model": model, "prompt": text}
+    payload.update(cfg.get("request_overrides") or {})
     try:
         res = _post_with_retries(
-            OLLAMA_URL,
+            cfg["url"],
             json_payload=payload,
-            timeout=OLLAMA_TIMEOUT_SEC,
-            max_retries=OLLAMA_MAX_RETRIES,
-            backoff=OLLAMA_RETRY_BACKOFF_SEC,
+            timeout=cfg["timeout"],
+            max_retries=cfg["max_retries"],
+            backoff=cfg["retry_backoff"],
+            headers=cfg.get("headers"),
+            verify=cfg.get("verify"),
         )
         data = res.json()
         vector = data.get("embedding")
@@ -147,27 +229,48 @@ def _ollama_embed_one(text: str, model: str) -> Optional[List[float]]:
         return None
 
 
-def get_embedding_ollama(text: str, model: str = OLLAMA_DEFAULT_MODEL) -> Optional[List[float]]:
-    return _ollama_embed_one(text, model)
+def get_embedding_ollama(
+    text: str,
+    model: str = OLLAMA_DEFAULT_MODEL,
+    *,
+    settings: Optional[Dict[str, Any]] = None,
+) -> Optional[List[float]]:
+    return _ollama_embed_one(text, model, settings=settings)
 
 
 def get_embeddings_ollama(
     texts: Iterable[str],
     model: str = OLLAMA_DEFAULT_MODEL,
+    *,
+    settings: Optional[Dict[str, Any]] = None,
 ) -> List[Optional[List[float]]]:
     vectors: List[Optional[List[float]]] = []
     for chunk in texts:
-        vectors.append(get_embedding_ollama(chunk, model=model))
+        vectors.append(get_embedding_ollama(chunk, model=model, settings=settings))
     return vectors
 
 
 # SentenceTransformer embeddings -------------------------------------------
 
 
-def _st_embed(texts: Sequence[str], model_name: Optional[str] = None) -> Optional[List[List[float]]]:
+def _st_embed(
+    texts: Sequence[str],
+    model_name: Optional[str] = None,
+    *,
+    settings: Optional[Dict[str, Any]] = None,
+) -> Optional[List[List[float]]]:
     model = _get_st_model(model_name)
     if model is None:
         return None
+
+    device = None
+    if settings:
+        device = settings.get("device")
+    if device and hasattr(model, "to"):
+        try:
+            model = model.to(device)
+        except Exception as exc:
+            logger.warning("Failed to move ST model to device %s: %s", device, exc)
 
     try:
         embeddings = model.encode(
@@ -186,13 +289,23 @@ def _st_embed(texts: Sequence[str], model_name: Optional[str] = None) -> Optiona
         raise STModelError(str(exc)) from exc
 
 
-def get_embedding_st(text: str, model: Optional[str] = None) -> Optional[List[float]]:
-    batch = _st_embed([text], model_name=model)
+def get_embedding_st(
+    text: str,
+    model: Optional[str] = None,
+    *,
+    settings: Optional[Dict[str, Any]] = None,
+) -> Optional[List[float]]:
+    batch = _st_embed([text], model_name=model, settings=settings)
     return batch[0] if batch else None
 
 
-def get_embeddings_st(texts: Sequence[str], model: Optional[str] = None) -> List[Optional[List[float]]]:
-    batch = _st_embed(texts, model_name=model)
+def get_embeddings_st(
+    texts: Sequence[str],
+    model: Optional[str] = None,
+    *,
+    settings: Optional[Dict[str, Any]] = None,
+) -> List[Optional[List[float]]]:
+    batch = _st_embed(texts, model_name=model, settings=settings)
     if batch is None:
         return [None for _ in texts]
     return batch
@@ -218,18 +331,24 @@ def get_embedding(
     text: str,
     provider: str = Provider.AUTO,
     model: str = OLLAMA_DEFAULT_MODEL,
+    *,
+    settings: Optional[Dict[str, Any]] = None,
+    profile: Optional[str] = None,
 ) -> Optional[List[float]]:
     p = (provider or Provider.AUTO).lower()
+    cfg = _prepare_settings(settings, profile)
 
     if p == Provider.OLLAMA:
-        return get_embedding_ollama(text, model=model)
+        return get_embedding_ollama(text, model=model, settings=cfg)
 
     if p == Provider.ST:
-        return get_embedding_st(text, model=model)
+        return get_embedding_st(text, model=model, settings=cfg)
 
     if p == Provider.AUTO:
-        vec = get_embedding_ollama(text, model=model)
-        return vec if vec is not None else get_embedding_st(text, model=model)
+        vec = get_embedding_ollama(text, model=model, settings=cfg)
+        if vec is not None:
+            return vec
+        return get_embedding_st(text, model=model, settings=cfg)
 
     raise ValueError(f"Unknown provider: {provider}")
 
@@ -238,24 +357,28 @@ def get_embeddings(
     texts: Union[str, Sequence[str]],
     provider: str = Provider.AUTO,
     model: str = OLLAMA_DEFAULT_MODEL,
+    *,
+    settings: Optional[Dict[str, Any]] = None,
+    profile: Optional[str] = None,
 ) -> List[Optional[List[float]]]:
     p = (provider or Provider.AUTO).lower()
     items = _as_text_list(texts)
+    cfg = _prepare_settings(settings, profile)
 
     if p == Provider.OLLAMA:
-        return get_embeddings_ollama(items, model=model)
+        return get_embeddings_ollama(items, model=model, settings=cfg)
 
     if p == Provider.ST:
-        return get_embeddings_st(items, model=model)
+        return get_embeddings_st(items, model=model, settings=cfg)
 
     if p == Provider.AUTO:
-        res = get_embeddings_ollama(items, model=model)
+        res = get_embeddings_ollama(items, model=model, settings=cfg)
         need_fallback_indices = [i for i, v in enumerate(res) if v is None]
         if not need_fallback_indices:
             return res
 
         fallback_inputs = [items[i] for i in need_fallback_indices]
-        fallback_vecs = get_embeddings_st(fallback_inputs, model=model)
+        fallback_vecs = get_embeddings_st(fallback_inputs, model=model, settings=cfg)
 
         it = iter(fallback_vecs)
         for i in need_fallback_indices:
@@ -265,15 +388,25 @@ def get_embeddings(
     raise ValueError(f"Unknown provider: {provider}")
 
 
-def get_both_embeddings(text: str) -> tuple[Optional[List[float]], Optional[List[float]]]:
-    embedding_384 = get_embedding_st(text)
-    embedding_768 = get_embedding_ollama(text)
+def get_both_embeddings(
+    text: str,
+    *,
+    settings: Optional[Dict[str, Any]] = None,
+    profile: Optional[str] = None,
+) -> tuple[Optional[List[float]], Optional[List[float]]]:
+    cfg = _prepare_settings(settings, profile)
+    embedding_384 = get_embedding_st(text, settings=cfg)
+    embedding_768 = get_embedding_ollama(text, settings=cfg)
     return embedding_384, embedding_768
 
 
 def get_embeddings_batch_both(
     texts: Sequence[str],
+    *,
+    settings: Optional[Dict[str, Any]] = None,
+    profile: Optional[str] = None,
 ) -> tuple[List[Optional[List[float]]], List[Optional[List[float]]]]:
-    embeddings_384 = get_embeddings_st(texts)
-    embeddings_768 = get_embeddings_ollama(texts)
+    cfg = _prepare_settings(settings, profile)
+    embeddings_384 = get_embeddings_st(texts, settings=cfg)
+    embeddings_768 = get_embeddings_ollama(texts, settings=cfg)
     return embeddings_384, embeddings_768

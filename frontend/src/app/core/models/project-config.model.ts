@@ -1,8 +1,4 @@
 export interface ProjectConfig {
-    userId: string;
-    charName: string;
-    userName: string;
-    language: string;
     voice: VoiceConfig;
     modules: ModuleConfig;
     vision: VisionConfig;
@@ -10,6 +6,7 @@ export interface ProjectConfig {
     rag: RagConfig;
     api: ApiConfig;
     analyzer: AnalyzerConfig;
+    moral: MoralConfig;
     memory: MemoryConfig;
     generateSettings: GenerationConfig;
     system: SystemConfig;
@@ -40,10 +37,7 @@ export interface ModuleConfig {
     visual: boolean;
 }
 
-export interface VisionModuleConfig {
-    modelId: string;
-    maxTokens: number;
-}
+export type VisionModuleConfig = Record<string, any>;
 
 export interface SystemConfig {
     userId: string;
@@ -71,9 +65,7 @@ export interface VisionConfig {
     windowProcess: string;
     debugSave: boolean;
     debugPath: string;
-    visionModules: {
-        [key: string]: VisionModuleConfig;
-    };
+    visionModules: Record<string, VisionModuleConfig>;
 }
 
 export interface AnalyzerProviderConfig {
@@ -89,6 +81,26 @@ export interface AnalyzerConfig {
     providers: {
         [key: string]: AnalyzerProviderConfig;
     };
+}
+
+export interface MoralProviderConfig {
+    model?: string;
+    temperature?: number;
+    maxTokens?: number;
+    apiKey?: string;
+}
+
+export interface MoralProvidersConfig {
+    heuristic?: Record<string, any>;
+    ollama?: MoralProviderConfig;
+    openrouter?: MoralProviderConfig;
+}
+
+export interface MoralConfig {
+    enabled: boolean;
+    activeProvider: string;
+    fallbackOrder: string[];
+    providers: MoralProvidersConfig;
 }
 
 export interface MemoryConfig {
@@ -114,6 +126,68 @@ export interface AudioConfig {
     ignoreTriggerWords?: boolean;
 }
 
+export interface RagKeywordConfig {
+    enabled: boolean;
+    maxCandidates: number;
+    minScore: number;
+    minOverlap: number;
+    boostUser: number;
+    boostAssistant: number;
+    stopwords: string[];
+}
+
+export interface RagVectorProfile {
+    label?: string;
+    enabled: boolean;
+    provider: string;
+    model: string;
+    topK: number;
+    threshold: number;
+    endpoint?: string;
+    timeout?: number;
+    maxRetries?: number;
+    retryBackoff?: number;
+    device?: string;
+}
+
+export interface RagVectorsConfig {
+    primary: string;
+    profiles: Record<string, RagVectorProfile>;
+}
+
+export interface RagShortTermConfig {
+    enabled: boolean;
+    threshold: number;
+}
+
+export interface RagRerankWeights {
+    embedding: number;
+    keyword: number;
+    shortTerm: number;
+}
+
+export interface RagRerankConfig {
+    enabled: boolean;
+    topN: number;
+    usePrimaryRerank: boolean;
+    boostRecency: number;
+    weights: RagRerankWeights;
+}
+
+export interface RagRetrievalConfig {
+    recent: { limit: number };
+    session: { enabled: boolean; window: string };
+    keyword: RagKeywordConfig;
+    vectors: RagVectorsConfig;
+    shortTerm: RagShortTermConfig;
+    rerank: RagRerankConfig;
+}
+
+export interface RagLoreConfig {
+    topK: number;
+    similarityThreshold: number;
+}
+
 export interface RagConfig {
     enabled: boolean;
     embeddingModel?: string;
@@ -124,6 +198,10 @@ export interface RagConfig {
     similarityThreshold?: number;
     enableCaching?: boolean;
     cacheTtl?: number;
+    retrieval?: RagRetrievalConfig;
+    lore?: RagLoreConfig;
+    searchStrategy?: any;
+    memory?: any;
 }
 
 export interface ApiConfig {

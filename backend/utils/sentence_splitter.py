@@ -1,3 +1,9 @@
+# Copyright (c) 2025 SugarcaneDefender
+#
+# This file is derived from the original Z-Waif project https://github.com/SugarcaneDefender/z-waif
+# and is governed by the Modified MIT License.
+# The remainder of this repository is licensed under the PolyForm Noncommercial License 1.0.0.
+
 import re
 
 alphabets = "([A-Za-z])"

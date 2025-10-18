@@ -2,8 +2,9 @@ import json
 import asyncio
 from fastapi import APIRouter, Body
 
-from modules.tts.service import force_cut_voice
-from services.api_service import play_message, run_standard
+from modules.tts.service import force_cut_voice, describe_providers as describe_tts_providers
+from modules.generative.conversation import play_message, generate_standard
+from core.decision_layer import decision_layer
 from services import config_service, voice_controller
 from modules.voice.vad_listener import (
     start_vad_background,
@@ -38,13 +39,26 @@ def start_record():
 
 @router.post("/record/stop")
 async def stop_record():
-    char_name = config_service.get_config_value("char_name", "default_waifu")
+    char_name = config_service.get_config_value("system.char_name", "default_waifu")
     data = voice_controller.stop_recording_and_process(char_name)
+    if not data:
+        return {"status": "error", "message": "No transcription"}
+
+    user_message = dict(data)
+    user_message.setdefault("history", [])
+
+    decision_context = await decision_layer.process_message(user_message, None)
+    decision_context.pop("raw_media", None)
     
     async def push_ws(msg):
         await manager.send_message(json.dumps(msg, ensure_ascii=False))
     
-    await run_standard([data], emit_ws_fn=push_ws)
+    await generate_standard(
+        decision_context,
+        [user_message],
+        user_message,
+        emit_ws_fn=push_ws,
+    )
 
     return {
         "status": "ok",
@@ -72,3 +86,12 @@ async def stop_voice_mode():
 @router.get("/mode/status")
 async def voice_mode_status():
     return {"status": "ok", "running": is_vad_running()}
+
+
+@router.get("/providers")
+async def voice_providers_status():
+    """
+    Return availability snapshot for configured TTS providers.
+    """
+    providers = describe_tts_providers()
+    return {"status": "ok", "providers": providers}

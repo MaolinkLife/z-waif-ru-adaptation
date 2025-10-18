@@ -1,0 +1,168 @@
+.settings-wrapper {
+    background-color: var(--color-surface);
+    padding: 24px;
+    border-radius: var(--radius);
+    font-family: var(--font-family);
+    color: var(--color-text);
+    max-width: 700px;
+    margin: 0 auto;
+    margin-bottom: 24px;
+
+    h2 {
+        color: var(--color-text-active);
+        margin-top: 0;
+        margin-bottom: 24px;
+        font-size: 24px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+}
+
+.settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.section {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    h3 {
+        margin: 0;
+        font-size: 18px;
+        color: var(--color-accent);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+
+    label {
+        font-weight: 500;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        &.checkbox {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-weight: normal;
+
+            input[type='checkbox'] {
+                accent-color: var(--color-accent);
+                width: 16px;
+                height: 16px;
+            }
+        }
+    }
+
+    input[type='text'],
+    input[type='password'],
+    input[type='number'],
+    select {
+        background-color: var(--color-surface);
+        color: var(--color-text-active);
+        border: 1px solid var(--color-border);
+        padding: 10px;
+        border-radius: var(--radius);
+        font-size: 14px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        font-family: var(--font-family);
+
+        &:focus {
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 2px var(--color-focus);
+            outline: none;
+        }
+    }
+
+    input[type='number'] {
+        &::-webkit-outer-spin-button,
+        &::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        -moz-appearance: textfield;
+        appearance: textfield;
+    }
+
+    select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml;utf8,<svg fill='%2300d8ff' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        background-size: 16px;
+        padding-right: 40px;
+
+        option {
+            background-color: var(--color-surface);
+            color: var(--color-text);
+        }
+    }
+}
+
+.checkbox-group {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.button-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+
+    button {
+        background: var(--color-accent);
+        color: var(--color-bg);
+        border: none;
+        padding: 10px 16px;
+        border-radius: var(--radius);
+        font-family: var(--font-family);
+        transition: background 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: var(--shadow-soft);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        &:hover:not(:disabled) {
+            background: var(--color-accent-dark);
+            box-shadow: var(--shadow-medium);
+        }
+
+        &:disabled {
+            background: var(--color-border);
+            color: #777;
+            cursor: not-allowed;
+            box-shadow: none;
+            opacity: 0.6;
+        }
+    }
+}
+
+.hint {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+}

@@ -11,8 +11,8 @@
 
 .message-renderer {
     .block {
-        margin: 8px 0;
-        padding: 8px 0;
+        // margin: 8px 0;
+        // padding: 8px 0;
 
         &.streaming {
             opacity: 0.8;
@@ -62,9 +62,44 @@
             code {
                 font-family: "SFMono-Regular", Consolas, "Liberation Mono",
                     Menlo, monospace;
-                font-size: 12px;
-                line-height: 1.45;
-                color: var(--color-text);
+                font-size: 13px;
+                line-height: 1.5;
+                color: #e6edf3;
+                display: block;
+                white-space: pre;
+                padding: 0;
+                background: transparent;
+                border-radius: 0;
+            }
+
+            .token.keyword {
+                color: #ff7b72;
+            }
+
+            .token.string {
+                color: #a5d6ff;
+            }
+
+            .token.number {
+                color: #f2cc60;
+            }
+
+            .token.boolean {
+                color: #c090ff;
+            }
+
+            .token.comment {
+                color: #8b949e;
+                font-style: italic;
+            }
+
+            .token.operator,
+            .token.punctuation {
+                color: #d2a8ff;
+            }
+
+            .token.property {
+                color: #79c0ff;
             }
         }
 
@@ -86,14 +121,23 @@
     }
 
     .list-block {
-        ul {
-            margin: 0;
-            padding-left: 20px;
+        margin: 12px 0;
+    }
 
-            li {
-                margin: 4px 0;
-                color: var(--color-text);
-            }
+    .table-block {
+        overflow-x: auto;
+        margin: 12px 0;
+    }
+
+    .quote-block {
+        border-left: 3px solid fade(@color-accent, 60%);
+        margin: 12px 0;
+        padding: 8px 18px;
+        color: fade(@color-text, 80%);
+        font-style: italic;
+
+        blockquote {
+            margin: 0;
         }
     }
 
@@ -283,3 +327,96 @@ code {
     border-radius: 3px;
     font-family: monospace;
 }
+
+
+
+:host ::ng-deep {
+    .rich-list {
+        margin: 0 0 12px 0;
+        padding-left: 20px;
+        list-style-position: outside;
+        list-style-type: disc;
+
+        li {
+            margin: 4px 0;
+            color: var(--color-text);
+            line-height: 1.5;
+        }
+
+        &.ordered {
+            list-style-type: decimal;
+        }
+    }
+
+    .rich-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: fade(@color-surface, 4%);
+        border: 1px solid fade(@color-border, 55%);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 18px 32px fade(@color-border, 15%);
+    }
+
+    .rich-table caption {
+        padding: 12px 18px;
+        font-weight: 600;
+        text-align: left;
+        color: fade(@color-text, 75%);
+        background: fade(@color-border, 12%);
+    }
+
+    // .rich-table thead {
+    //     background: linear-gradient(
+    //         135deg,
+    //         fade(@color-border, 28%),
+    //         fade(@color-accent, 18%)
+    //     );
+    // }
+
+    .rich-table thead th {
+        text-align: left;
+        padding: 16px 20px;
+        font-weight: 600;
+        color: fade(@color-text, 96%);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        font-size: 0.72rem;
+        border-bottom: 1px solid fade(@color-border, 45%);
+    }
+
+    .rich-table tbody tr {
+        transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .rich-table tbody tr:nth-child(odd) {
+        background: fade(@color-border, 6%);
+    }
+
+    // .rich-table tbody tr:hover {
+    //     background: fade(@color-accent, 12%);
+    //     transform: translateY(-1px);
+    // }
+
+    .rich-table tbody td {
+        padding: 14px 20px;
+        color: fade(@color-text, 94%);
+        border-bottom: 1px solid fade(@color-border, 38%);
+        vertical-align: top;
+        line-height: 1.6;
+        font-size: 0.92rem;
+    }
+
+    .rich-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .rich-table tfoot td {
+        padding: 12px 18px;
+        background: fade(@color-border, 12%);
+        color: fade(@color-text, 85%);
+        font-weight: 500;
+    }
+}
+

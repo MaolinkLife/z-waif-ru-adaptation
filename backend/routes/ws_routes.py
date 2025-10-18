@@ -3,7 +3,8 @@ import json
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from core.websocket_manager import manager
-from services import api_service, database_service, config_service
+from modules.generative import conversation
+from services import database_service, config_service
 from services.logger_service import log_audit_entry, AuditStatus
 from core.decision_layer import decision_layer
 
@@ -71,7 +72,12 @@ async def websocket_endpoint(websocket: WebSocket):
 
                     # Format history for the API service
                     instructor = Instructor()
-                    media_payload = data.get("media")
+                    raw_media_payload = processing_result.pop("raw_media", None)
+                    media_payload = (
+                        raw_media_payload
+                        if raw_media_payload is not None
+                        else data.get("media")
+                    )
                     if media_payload:
                         log_audit_entry(
                             "ws_media_received",
@@ -106,17 +112,22 @@ async def websocket_endpoint(websocket: WebSocket):
                                 AuditStatus.WARNING,
                                 details={"count": len(attachments_info)},
                             )
-                        user_message_ctx = processing_result.get("user_message", {})
-                        user_message_ctx["media"] = media_payload
-                        processing_result["user_message"] = user_message_ctx
 
                     formatted_history = await instructor.format_for_api(
                         processing_result["system_prompt"],
                         processing_result["user_message"],
                     )
 
-                    # Pass history to the API service (original method)
-                    await api_service.run_stream_message(websocket, formatted_history)
+                    async def emit(payload: dict) -> bool:
+                        return await _safe_send_json(websocket, payload)
+
+                    await conversation.generate_stream(
+                        processing_result,
+                        formatted_history,
+                        emit_fn=emit,
+                        last_user_message=processing_result.get("user_message"),
+                        raw_user_media=media_payload,
+                    )
 
                 except Exception as e:
                     log_audit_entry(
@@ -137,7 +148,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 limit = data.get("limit", 32)
                 offset = data.get("offset", 0)
                 char_name = config_service.get_config_value(
-                    "char_name", "default_waifu"
+                    "system.char_name", "default_waifu"
                 )
                 history = database_service.get_history(char_name, limit, offset)
                 if not await _safe_send_json(

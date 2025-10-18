@@ -160,8 +160,10 @@
                         <option
                             *ngFor="let module of voiceModules"
                             [value]="module.value"
+                            [disabled]="!module.available"
+                            [title]="getModuleTooltip(module)"
                         >
-                            {{ module.label }}
+                            {{ getModuleLabel(module) }}
                         </option>
                     </select>
                 </div>
@@ -350,6 +352,53 @@
                                     width="100%"
                                 ></app-skeleton>
                             </ng-template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- gTTS Fields -->
+                <div *ngIf="showGttsFields()" formGroupName="voiceModules">
+                    <div formGroupName="gtts">
+                        <div class="form-group">
+                            <label for="gtts-language">{{
+                                "settings.language" | translate
+                            }}</label>
+                            <input
+                                id="gtts-language"
+                                type="text"
+                                formControlName="language"
+                                placeholder="ru"
+                            />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="gtts-tld">TLD</label>
+                            <input
+                                id="gtts-tld"
+                                type="text"
+                                formControlName="tld"
+                                placeholder="com"
+                            />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox">
+                                <input
+                                    type="checkbox"
+                                    formControlName="slow"
+                                />
+                                Slow mode (gTTS)
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="gtts-fallback">Fallback voice (pyttsx3)</label>
+                            <input
+                                id="gtts-fallback"
+                                type="text"
+                                formControlName="fallbackVoice"
+                                placeholder="pyttsx3 voice id"
+                            />
                         </div>
                     </div>
                 </div>

@@ -50,4 +50,13 @@ export class ResourcesService {
             })
         );
     }
+
+    getVoiceProviders$(): Observable<any> {
+        return this.http.get(`${this.apiUrl}/voice/providers`).pipe(
+            catchError((error) => {
+                console.error('Error getting voice providers status:', error);
+                return of({ status: 'error', providers: {} });
+            })
+        );
+    }
 }

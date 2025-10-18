@@ -13,6 +13,8 @@ from services.storage_service import (
     serialize_media_entries,
     delete_media_files,
 )
+from modules.generative import conversation
+from core.decision_layer import decision_layer
 
 
 def add_history(
@@ -475,9 +477,21 @@ async def reroll_assistant_message(message_id: str) -> dict:
             session, character_id=user_msg.character_id, user_msg=user_msg, limit=32
         )
 
-        from services import api_service
+        last_user = history[-1] if history else None
+        if not last_user or last_user.get("role") != "user":
+            raise ValueError("Unable to locate user message for reroll")
 
-        new_response = await api_service.run_standard(history=history, return_full=True)
+        user_message = dict(last_user)
+        user_message.setdefault("history", history[:-1])
+
+        decision_context = await decision_layer.process_message(user_message, None)
+        decision_context.pop("raw_media", None)
+        new_response = await conversation.generate_standard(
+            decision_context,
+            history,
+            user_message,
+            return_full=True,
+        )
 
         return {
             "role": "assistant",

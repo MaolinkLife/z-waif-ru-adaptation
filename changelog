@@ -1,19 +1,82 @@
-version: 0.1
-- Migrated TTS module from z-waif
-- Reworked and styled chat interface (action icons, message input, send/reroll/stop buttons)
-- Added visual debug log with expandable details
-- Implemented basic UI settings with partial + global config sync
-- Connected audio module to backend
-- Created reusable low-level utilities
-- Added LLM initiative engine and preload script
-- Introduced preset editor for temperature settings (UI accessible)
-- Integrated API router logging & auditing
-- Added extensible SQLite database with message history support
-- Implemented system device info retrieval (microphone, speakers, etc.)
-- Introduced speech-to-text (STT) service
-- Migrated utility features from z-waif
-- Added memory search behavior
-- Improved interaction with voice input
+version: 0.5
+- Localization & Logging
+  - Added a `.env`-driven localization service with EN/RU dictionaries, automatic fallbacks, and cached lookups for backend modules.
+  - Extended the logger to resolve localized strings, persist message keys/args, capture active language, and mirror localized output to the console.
+  - Updated analyzer, memory, audio, voice, TTS, vision, and initialization flows to emit localized audit events with contextual parameters.
+- Voice, TTS & Vision
+  - Localized the entire VAD listener pipeline (startup, trigger handling, duplicate suppression) and audio playback threads with structured console prints.
+  - ElevenLabs and offline TTS providers now report localized progress/errors, chunk counts, and synthesis timings; audio playback interruptions are localized per device.
+  - Vision service, worker, and AppleVision provider log localized monitor/window selection, YOLO/SSIM metrics, capture errors, and inference lifecycle events.
+- Memory & API
+  - Memory routes and short-term memory helpers now output localized schema checks, refresh steps, and retrieval logs.
+  - Analyzer provider manager and other backend utilities adopt the localization service for consistent RU/EN messaging across the stack.
+- Backend & Core Systems
+  - Introduced a `.env`-driven localization service with EN/RU dictionaries, cached loading, and fallback logic; wired it into the logger so every audit entry prints translated text with contextual parameters.
+  - Added the Moral Matrix module (repository, heuristics, Ollama/OpenRouter providers with fallback manager) and hooked its evaluation results into the decision layer.
+  - Rebuilt the high-level generation pipeline (`modules/generative/conversation.py`) to orchestrate streaming providers, sanitise attachments, split reasoning `<think>` blocks, and persist richer metadata in storage/history.
+  - Expanded default configuration, DTOs, and routes with moral/analyzer/generation fields, plus helpers for PATCH updates and system prompt management.
+- Voice & Audio Pipeline
+  - Overhauled the TTS manager with provider retry/back-off, queue/worker controls, self-trigger protection, and detailed logging across Edge, ElevenLabs, gTTS, and offline fallbacks.
+  - Localised the VAD listener (startup, trigger handling, duplicate suppression) and audio playback threads; console prints now mirror audit events with translated strings.
+  - ElevenLabs and offline providers report download progress, synthesis timings, and error states via the localization layer; audio playback interruptions include per-device context.
+- Vision & Memory
+  - Vision service/worker emit localized diagnostics for monitor/window selection, YOLO counts, SSIM/optical-flow metrics, and capture failures; AppleVision provider logs localized load/ready/inference lifecycle messages.
+  - Short-term memory schema checks, refresh routines, and analyzer provider fallbacks now surface localized console/audit output.
+- Frontend & Tooling
+  - Updated Angular config service/mappers to handle partial updates for new sections (moral, analyzer, system prompt) and aligned UI logging with backend schema changes.
+  - Added RU/EN translation assets and localization helpers so the frontend mirrors backend language selection during diagnostics.
+- Bugfix & Stability Improvements
+  - Voice & TTS
+    - Edge-TTS provider now checks service availability before fetching voices; if the service is unreachable, voices are skipped and not loaded into the frontend (8-second timeout threshold).
+    - Added configuration flag for selecting offline TTS mode directly from the Audio settings.
+  - Configuration & Visual Module
+    - Fixed monitor selection and value assignment issues affecting the Vision module.
+    - Restored proper handling of character name and owner name fields in configuration.
+    - Fixed analyzer settings not applying correctly after updates.
+    - Resolved an issue where Audio settings overwrote unrelated config sections on save.
+    - Improved visual provider initialization and parameter mapping for stability.
+
+version: 0.4
+- Backend & LLM orchestration
+  - Introduced modular analyzer and generative packages with provider managers that fail over between OpenRouter and Ollama, plus shared Ollama client helpers for text and vision chats.
+  - Rewired generation streaming and synchronous paths through the new providers, centralizing error handling and audit logging around the fallback chain.
+- Memory & Storage
+  - Added a MemoryModule that can collect recent/session context via embeddings, integrate lorebook lookups, and report retrieval metadata.
+  - Implemented a storage service + /api/media route to persist message attachments on disk, auto-upgrade the storage schema, and expose safe downloads.
+- Config & API surface
+  - Expanded config models, DTOs, and routes to cover analyzer, generator, memory, and media settings; refreshed mappers on both backend and frontend to keep camelCase ↔ snake_case conversions in sync.
+  - Updated vector/service helpers and new storage endpoints to cooperate with the modular services.
+- Voice & TTS
+  - Added a gTTS provider with automatic pyttsx3 fallback, expanded audit logging, and folded it into the provider sequence so fallback order is ElevenLabs → gTTS → offline.
+  - Reworked the TTS stop pipeline to raise the interrupt flag, clear the playback queue, and leave the worker thread ready for future jobs, fixing cases where new chunks were still spoken after Stop.
+- Decision & diagnostics
+  - DecisionLayer now delegates to the shared TTS service, emits richer analyzer/vision logs, and keeps the troubleshooting prints inline with the new modules.
+- Resources
+  - Added a configurable timeout (default 8s) to `/api/resources/voices` so the UI fails fast when the remote voice provider hangs.
+- Frontend
+  - Added analyzer settings modal, analyzer/memory config mappers, and expanded settings UI to surface provider selection, fallbacks, and new API fields.
+  - Synced chat/settings components with the backend schema so media, analyzer, and memory options stay editable from the UI.
+
+
+version: 0.3
+- Config & Backend
+  - Moved the default config into constants/default_config.py, expanded it with system/core sections, voice module settings, STT defaults, and snake_case audio/vision keys.
+  - Config service now logs recursive updates, exposes set_config_value, validates user_id, and config routes can read/write system prompts while history fetch supports offsets.
+- Voice & Conversation
+  - Introduced a shared voice_state controller and wired it through VAD, streaming, and TTS so listening/waiting/speaking stages stay in sync.
+  - Added ElevenLabs TTS integration with per-module settings, sanitized streamed speech (# removal, emoji stripping), and skipped synthesis when voice is disabled.
+  - VAD listener now deduplicates transcripts, honours the new trigger bypass flag, normalizes config keys, and guards processing with async locks to block self-trigger loops.
+- Vision
+  - Added an Apple FastVLM provider and structured provider configs, including capture metadata in summaries and optional frame dumps controlled via config.
+  - Capture worker now supports monitor/window modes, clamps invalid monitor indices, and reports when the active window falls outside the capture region.
+- Frontend & Settings
+  - Refactored config mappers into domain utilities aligned with the backend schema and renamed the API client method to updateConfig$.
+  - Added Core/System settings views (system prompt editor, theme/language switches, cognitive analyzer controls) and new ConfigService helpers for system endpoints.
+  - Theme service now persists the selected theme and initializes stored preferences.
+- UI & Components
+  - Introduced notification and skeleton shared components plus an emoji picker with a data generation script and bundled emoji dataset.
+  - Refreshed chat/settings/layout styles and tabs to surface the new settings groups and debug affordances.
+
 
 version: 0.2
 - Backend
@@ -38,43 +101,21 @@ version: 0.2
   - Redesigned the thinking block with LIM palette, accordion-style expand/collapse, and auto-collapse after streaming.
   - Ensured reasoning removal on history deletion and tightened audit logs around VAD, visual context, and API generation flows.
 
-version: 0.3
-- Config & Backend
-  - Moved the default config into constants/default_config.py, expanded it with system/core sections, voice module settings, STT defaults, and snake_case audio/vision keys.
-  - Config service now logs recursive updates, exposes set_config_value, validates user_id, and config routes can read/write system prompts while history fetch supports offsets.
-- Voice & Conversation
-  - Introduced a shared voice_state controller and wired it through VAD, streaming, and TTS so listening/waiting/speaking stages stay in sync.
-  - Added ElevenLabs TTS integration with per-module settings, sanitized streamed speech (# removal, emoji stripping), and skipped synthesis when voice is disabled.
-  - VAD listener now deduplicates transcripts, honours the new trigger bypass flag, normalizes config keys, and guards processing with async locks to block self-trigger loops.
-- Vision
-  - Added an Apple FastVLM provider and structured provider configs, including capture metadata in summaries and optional frame dumps controlled via config.
-  - Capture worker now supports monitor/window modes, clamps invalid monitor indices, and reports when the active window falls outside the capture region.
-- Frontend & Settings
-  - Refactored config mappers into domain utilities aligned with the backend schema and renamed the API client method to updateConfig$.
-  - Added Core/System settings views (system prompt editor, theme/language switches, cognitive analyzer controls) and new ConfigService helpers for system endpoints.
-  - Theme service now persists the selected theme and initializes stored preferences.
-- UI & Components
-  - Introduced notification and skeleton shared components plus an emoji picker with a data generation script and bundled emoji dataset.
-  - Refreshed chat/settings/layout styles and tabs to surface the new settings groups and debug affordances.
 
-
-
-version: 0.4
-- Backend & LLM orchestration
-  - Introduced modular analyzer and generative packages with provider managers that fail over between OpenRouter and Ollama, plus shared Ollama client helpers for text and vision chats.
-  - Rewired generation streaming and synchronous paths through the new providers, centralizing error handling and audit logging around the fallback chain.
-- Memory & Storage
-  - Added a MemoryModule that can collect recent/session context via embeddings, integrate lorebook lookups, and report retrieval metadata.
-  - Implemented a storage service + /api/media route to persist message attachments on disk, auto-upgrade the storage schema, and expose safe downloads.
-- Config & API surface
-  - Expanded config models, DTOs, and routes to cover analyzer, generator, memory, and media settings; refreshed mappers on both backend and frontend to keep camelCase ↔ snake_case conversions in sync.
-  - Updated vector/service helpers and new storage endpoints to cooperate with the modular services.
-- Voice & TTS
-  - Added a gTTS provider with automatic pyttsx3 fallback, expanded audit logging, and folded it into the provider sequence so fallback order is ElevenLabs → gTTS → offline.
-  - Reworked the TTS stop pipeline to raise the interrupt flag, clear the playback queue, and leave the worker thread ready for future jobs, fixing cases where new chunks were still spoken after Stop.
-- Decision & diagnostics
-  - DecisionLayer now delegates to the shared TTS service, emits richer analyzer/vision logs, and keeps the troubleshooting prints inline with the new modules.
-- Frontend
-  - Added analyzer settings modal, analyzer/memory config mappers, and expanded settings UI to surface provider selection, fallbacks, and new API fields.
-  - Synced chat/settings components with the backend schema so media, analyzer, and memory options stay editable from the UI.
+version: 0.1
+- Migrated TTS module from z-waif
+- Reworked and styled chat interface (action icons, message input, send/reroll/stop buttons)
+- Added visual debug log with expandable details
+- Implemented basic UI settings with partial + global config sync
+- Connected audio module to backend
+- Created reusable low-level utilities
+- Added LLM initiative engine and preload script
+- Introduced preset editor for temperature settings (UI accessible)
+- Integrated API router logging & auditing
+- Added extensible SQLite database with message history support
+- Implemented system device info retrieval (microphone, speakers, etc.)
+- Introduced speech-to-text (STT) service
+- Migrated utility features from z-waif
+- Added memory search behavior
+- Improved interaction with voice input
 

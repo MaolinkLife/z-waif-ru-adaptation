@@ -32,42 +32,41 @@ import {
     mapGenerationDtoToModel,
     mapGenerationModelToDto
 } from './generation-config-mapper';
+import {
+    mapMoralDtoToModel,
+    mapMoralModelToDto,
+    mapMoralPartialModelToDto
+} from './moral-config-mapper';
 import { mapSystemDtoToModel, mapSystemModelToDto } from './system-config-mapper';
 import { mapMemoryDtoToModel, mapMemoryModelToDto } from './memory-config-mapper';
 
 
 export const mapProjectConfigDtoToModel = (dto: ProjectConfigDto): ProjectConfig => ({
-    userId: dto.user_id,
-    charName: dto.char_name,
-    userName: dto.user_name,
-    language: dto.language,
     voice: mapVoiceDtoToModel(dto.voice),
     modules: mapModulesDtoToModel(dto.modules),
     vision: mapVisionDtoToModel(dto.vision),
     audio: mapAudioDtoToModel(dto.audio),
     rag: mapRagDtoToModel(dto.rag),
     analyzer: mapAnalyzerDtoToModel(dto.analyzer),
+    moral: mapMoralDtoToModel(dto.moral),
     memory: mapMemoryDtoToModel(dto.memory),
     api: mapApiDtoToModel(dto.api),
     generateSettings: mapGenerationDtoToModel(dto.generate_settings),
-    system: mapSystemDtoToModel(dto.system)
+    system: mapSystemDtoToModel(dto.system, dto.language)
 });
 
 export const mapProjectConfigModelToDto = (model: ProjectConfig): ProjectConfigDto => ({
-    user_id: model.userId,
-    char_name: model.charName,
-    user_name: model.userName,
-    language: model.language,
     voice: mapVoiceModelToDto(model.voice),
     modules: mapModulesModelToDto(model.modules),
     vision: mapVisionModelToDto(model.vision),
     audio: mapAudioModelToDto(model.audio),
     rag: mapRagModelToDto(model.rag),
     analyzer: mapAnalyzerModelToDto(model.analyzer),
+    moral: mapMoralModelToDto(model.moral),
     memory: mapMemoryModelToDto(model.memory),
     api: mapApiModelToDto(model.api),
     generate_settings: mapGenerationModelToDto(model.generateSettings),
-    system: mapSystemModelToDto(model.system),
+    system: mapSystemModelToDto(model.system) as ProjectConfigDto['system'],
 });
 
 export const mapPartialModelToDto = (
@@ -77,18 +76,6 @@ export const mapPartialModelToDto = (
 
     Object.keys(model).forEach((key) => {
         switch (key) {
-            case 'userId':
-                dto.user_id = model.userId;
-                break;
-            case 'charName':
-                dto.char_name = model.charName;
-                break;
-            case 'userName':
-                dto.user_name = model.userName;
-                break;
-            case 'language':
-                dto.language = model.language;
-                break;
             case 'voice':
                 dto.voice = mapVoiceModelToDto(model.voice!);
                 break;
@@ -118,6 +105,12 @@ export const mapPartialModelToDto = (
             case 'memory':
                 dto.memory = mapMemoryModelToDto(model.memory);
                 break;
+            case 'moral':
+                const moralDto = mapMoralPartialModelToDto(model.moral);
+                if (moralDto && Object.keys(moralDto).length > 0) {
+                    dto.moral = moralDto as any;
+                }
+                break;
             case 'api':
                 dto.api = mapApiModelToDto(model.api!);
                 break;
@@ -125,7 +118,7 @@ export const mapPartialModelToDto = (
                 dto.generate_settings = mapGenerationModelToDto(model.generateSettings!);
                 break;
             case 'system':
-                dto.system = mapSystemModelToDto(model.system!);
+                dto.system = mapSystemModelToDto(model.system!) as ProjectConfigDto['system'];
                 break;
         }
     });

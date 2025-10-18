@@ -7,7 +7,6 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { ApiService } from '../../core/services/api.service';
 import { ConfigService } from '../../core/services/config.service';
-import { MarkdownModule } from 'ngx-markdown';
 import { SharedModule } from '../../shared/shared.module';
 
 
@@ -21,7 +20,6 @@ import { SharedModule } from '../../shared/shared.module';
         FormsModule,
         ReactiveFormsModule,
         HttpClientModule,
-        MarkdownModule.forChild(),
         SharedModule,
     ],
     providers: [

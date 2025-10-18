@@ -1,57 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray } from '@angular/forms';
 import { ConfigService } from '../../../../../core/services/config.service';
 import { LocalizationService } from '../../../../../shared/pipes/translation/localization.service';
-
-interface RagSearchStrategy {
-    sessionContext: {
-        enabled: boolean;
-        maxMessages: number;
-        lookBackToToday: boolean;
-    };
-    dailySummary: {
-        enabled: boolean;
-        lookBackDays: number;
-        useTags: boolean;
-    };
-    longTermMemory: {
-        enabled: boolean;
-        vectorSearch: boolean;
-        graphSearch: boolean;
-        priorityRules: boolean;
-    };
-    fallback: {
-        askUser: boolean;
-        autoLearn: boolean;
-    };
-}
-
-interface RagMemory {
-    facts: {
-        enabled: boolean;
-        priorityRules: string[];
-        autoUpdate: boolean;
-    };
-    graph: {
-        enabled: boolean;
-        relationships: boolean;
-        inference: boolean;
-    };
-}
-
-interface RagConfig {
-    enabled: boolean;
-    embeddingModel: string;
-    vectorDbPath: string;
-    chunkSize: number;
-    chunkOverlap: number;
-    topK: number;
-    similarityThreshold: number;
-    enableCaching: boolean;
-    cacheTtl: number;
-    searchStrategy: RagSearchStrategy;
-    memory: RagMemory;
-}
+import { RagConfig, RagVectorProfile } from '../../../../../core/models/project-config.model';
 
 @Component({
     selector: 'app-rag-settings',
@@ -61,6 +12,29 @@ interface RagConfig {
 export class RagSettingsComponent implements OnInit {
     ragForm: FormGroup;
     originalConfig: any = {};
+    private readonly defaultVectorProfiles: Record<string, RagVectorProfile> = {
+        embed768: {
+            label: '768d • nomic-embed-text',
+            enabled: true,
+            provider: 'ollama',
+            model: 'nomic-embed-text',
+            topK: 8,
+            threshold: 0.9,
+            endpoint: 'http://localhost:11434/api/embeddings',
+            timeout: 30,
+            maxRetries: 2,
+            retryBackoff: 0.75,
+        },
+        embed384: {
+            label: '384d • all-MiniLM-L6-v2',
+            enabled: true,
+            provider: 'st',
+            model: 'all-MiniLM-L6-v2',
+            topK: 10,
+            threshold: 0.9,
+            device: 'cpu',
+        },
+    };
 
     constructor(
         private fb: FormBuilder,
@@ -68,6 +42,14 @@ export class RagSettingsComponent implements OnInit {
         private localizationService: LocalizationService
     ) {
         this.ragForm = this.createForm();
+    }
+
+    get vectorProfiles(): FormArray {
+        return this.ragForm.get('vectorProfiles') as FormArray;
+    }
+
+    get vectorProfilesControls() {
+        return this.vectorProfiles.controls;
     }
 
     ngOnInit(): void {
@@ -87,6 +69,31 @@ export class RagSettingsComponent implements OnInit {
             similarityThreshold: [0.7],
             enableCaching: [true],
             cacheTtl: [60],
+
+            // Hybrid retrieval controls
+            retrievalRecentLimit: [32],
+            retrievalSessionEnabled: [true],
+            retrievalSessionWindow: ['day'],
+            retrievalKeywordEnabled: [true],
+            retrievalKeywordMaxCandidates: [8],
+            retrievalKeywordMinScore: [0.2],
+            retrievalKeywordMinOverlap: [0.25],
+            retrievalKeywordBoostUser: [1.05],
+            retrievalKeywordBoostAssistant: [0.95],
+            retrievalKeywordStopwords: [''],
+            primaryVector: ['embed768'],
+            shortTermEnabled: [true],
+            shortTermThreshold: [0.6],
+            rerankEnabled: [true],
+            rerankTopN: [6],
+            rerankUsePrimary: [true],
+            rerankBoostRecency: [0.15],
+            rerankWeightEmbedding: [0.65],
+            rerankWeightKeyword: [0.25],
+            rerankWeightShortTerm: [0.1],
+            loreTopK: [3],
+            loreSimilarityThreshold: [0.7],
+            vectorProfiles: this.fb.array([]),
 
             // Search strategy settings
             sessionContextEnabled: [true],
@@ -118,13 +125,12 @@ export class RagSettingsComponent implements OnInit {
     private loadConfig(): void {
         this.configService.getConfig$().subscribe(config => {
             if (config && config.rag) {
-                this.originalConfig = { ...config.rag };
-                this.patchFormWithRagConfig(config.rag);
+                this.patchFormWithRagConfig(config.rag as RagConfig);
             }
         });
     }
 
-    private patchFormWithRagConfig(ragConfig: any): void {
+    private patchFormWithRagConfig(ragConfig: RagConfig): void {
         // Basic settings
         const basicSettings = {
             enabled: ragConfig.enabled ?? true,
@@ -136,6 +142,50 @@ export class RagSettingsComponent implements OnInit {
             similarityThreshold: ragConfig.similarityThreshold ?? 0.7,
             enableCaching: ragConfig.enableCaching ?? true,
             cacheTtl: ragConfig.cacheTtl ?? 60
+        };
+
+        const retrieval = ragConfig.retrieval;
+        const vectorProfiles = retrieval?.vectors?.profiles ?? {};
+        const profilesWithFallback =
+            Object.keys(vectorProfiles).length > 0
+                ? vectorProfiles
+                : this.defaultVectorProfiles;
+
+        let primaryVector = retrieval?.vectors?.primary ?? '';
+        const profileKeys = Object.keys(profilesWithFallback);
+        if (
+            (!primaryVector || !profilesWithFallback[primaryVector]) &&
+            profileKeys.length > 0
+        ) {
+            primaryVector = profileKeys[0];
+        }
+        if (profileKeys.length === 0) {
+            primaryVector = Object.keys(this.defaultVectorProfiles)[0] ?? '';
+        }
+
+        const retrievalSettings = {
+            retrievalRecentLimit: retrieval?.recent?.limit ?? 32,
+            retrievalSessionEnabled: retrieval?.session?.enabled ?? true,
+            retrievalSessionWindow: retrieval?.session?.window ?? 'day',
+            retrievalKeywordEnabled: retrieval?.keyword?.enabled ?? true,
+            retrievalKeywordMaxCandidates: retrieval?.keyword?.maxCandidates ?? 8,
+            retrievalKeywordMinScore: retrieval?.keyword?.minScore ?? 0.2,
+            retrievalKeywordMinOverlap: retrieval?.keyword?.minOverlap ?? 0.25,
+            retrievalKeywordBoostUser: retrieval?.keyword?.boostUser ?? 1.05,
+            retrievalKeywordBoostAssistant: retrieval?.keyword?.boostAssistant ?? 0.95,
+            retrievalKeywordStopwords: (retrieval?.keyword?.stopwords ?? []).join(', '),
+            primaryVector,
+            shortTermEnabled: retrieval?.shortTerm?.enabled ?? true,
+            shortTermThreshold: retrieval?.shortTerm?.threshold ?? 0.6,
+            rerankEnabled: retrieval?.rerank?.enabled ?? true,
+            rerankTopN: retrieval?.rerank?.topN ?? 6,
+            rerankUsePrimary: retrieval?.rerank?.usePrimaryRerank ?? true,
+            rerankBoostRecency: retrieval?.rerank?.boostRecency ?? 0.15,
+            rerankWeightEmbedding: retrieval?.rerank?.weights?.embedding ?? 0.65,
+            rerankWeightKeyword: retrieval?.rerank?.weights?.keyword ?? 0.25,
+            rerankWeightShortTerm: retrieval?.rerank?.weights?.shortTerm ?? 0.1,
+            loreTopK: ragConfig.lore?.topK ?? 3,
+            loreSimilarityThreshold: ragConfig.lore?.similarityThreshold ?? 0.7,
         };
 
         // Search strategy settings
@@ -177,16 +227,116 @@ export class RagSettingsComponent implements OnInit {
             graphInference: graph.inference ?? true
         };
 
+        this.setVectorProfiles(
+            profilesWithFallback as Record<string, RagVectorProfile>
+        );
+
         // Patch all settings
         this.ragForm.patchValue({
             ...basicSettings,
+            ...retrievalSettings,
             ...strategySettings,
             ...memorySettings
         });
+
+        const snapshot = this.buildRagConfigFromForm();
+        this.originalConfig = JSON.parse(JSON.stringify(snapshot));
+    }
+
+    private setVectorProfiles(profiles: Record<string, RagVectorProfile>): void {
+        const array = this.vectorProfiles;
+        array.clear();
+
+        const entries =
+            Object.entries(profiles || {}).length > 0
+                ? Object.entries(profiles)
+                : Object.entries(this.defaultVectorProfiles);
+
+        entries.forEach(([key, profile]) => {
+            array.push(
+                this.fb.group({
+                    key: [key],
+                    label: [profile?.label ?? key],
+                    enabled: [profile?.enabled ?? true],
+                    provider: [profile?.provider ?? 'auto'],
+                    model: [profile?.model ?? ''],
+                    topK: [profile?.topK ?? this.defaultVectorProfiles[key]?.topK ?? 5],
+                    threshold: [profile?.threshold ?? this.defaultVectorProfiles[key]?.threshold ?? 0.9],
+                    endpoint: [profile?.endpoint ?? ''],
+                    timeout: [profile?.timeout ?? null],
+                    maxRetries: [profile?.maxRetries ?? null],
+                    retryBackoff: [profile?.retryBackoff ?? null],
+                    device: [profile?.device ?? ''],
+                })
+            );
+        });
+    }
+
+    private buildVectorProfilesFromForm(): Record<string, RagVectorProfile> {
+        const result: Record<string, RagVectorProfile> = {};
+        this.vectorProfiles.controls.forEach((control) => {
+            const value = control.value;
+            if (!value?.key) {
+                return;
+            }
+            const defaults = this.defaultVectorProfiles[value.key] || {};
+            const endpoint = typeof value.endpoint === 'string' ? value.endpoint.trim() : '';
+            const timeout = this.parseOptionalNumber(value.timeout, defaults.timeout);
+            const maxRetries = this.parseOptionalNumber(value.maxRetries, defaults.maxRetries);
+            const retryBackoff = this.parseOptionalNumber(value.retryBackoff, defaults.retryBackoff);
+            const topK = this.parseOptionalNumber(value.topK, defaults.topK ?? 5) ?? 5;
+            const threshold = this.parseOptionalNumber(value.threshold, defaults.threshold ?? 0.9) ?? 0.9;
+            result[value.key] = {
+                label: value.label || defaults.label || value.key,
+                enabled:
+                    value.enabled !== undefined
+                        ? !!value.enabled
+                        : defaults.enabled ?? true,
+                provider: value.provider || defaults.provider || 'auto',
+                model: value.model || defaults.model || '',
+                topK,
+                threshold,
+                endpoint: endpoint || defaults.endpoint,
+                timeout,
+                maxRetries,
+                retryBackoff,
+                device: value.device
+                    ? String(value.device).trim()
+                    : defaults.device,
+            };
+        });
+        return result;
+    }
+
+    private parseOptionalNumber(value: any, fallback?: number): number | undefined {
+        if (value === null || value === undefined || value === '') {
+            return fallback;
+        }
+        const num = Number(value);
+        if (Number.isFinite(num)) {
+            return num;
+        }
+        return fallback;
+    }
+
+    private parseStopwords(value: string): string[] {
+        if (!value) {
+            return [];
+        }
+        return value
+            .split(/[,;\n]/)
+            .map((item) => item.trim())
+            .filter((item) => item.length > 0);
     }
 
     private buildRagConfigFromForm(): any {
         const formValue = this.ragForm.value;
+        const vectorProfiles = this.buildVectorProfilesFromForm();
+        let primaryVector = formValue.primaryVector;
+        const profileKeys = Object.keys(vectorProfiles);
+        if ((!primaryVector || !vectorProfiles[primaryVector]) && profileKeys.length > 0) {
+            primaryVector = profileKeys[0];
+        }
 
         return {
             enabled: formValue.enabled,
@@ -198,6 +348,47 @@ export class RagSettingsComponent implements OnInit {
             similarityThreshold: formValue.similarityThreshold,
             enableCaching: formValue.enableCaching,
             cacheTtl: formValue.cacheTtl,
+            retrieval: {
+                recent: {
+                    limit: Number(formValue.retrievalRecentLimit),
+                },
+                session: {
+                    enabled: !!formValue.retrievalSessionEnabled,
+                    window: formValue.retrievalSessionWindow,
+                },
+                keyword: {
+                    enabled: !!formValue.retrievalKeywordEnabled,
+                    maxCandidates: Number(formValue.retrievalKeywordMaxCandidates),
+                    minScore: Number(formValue.retrievalKeywordMinScore),
+                    minOverlap: Number(formValue.retrievalKeywordMinOverlap),
+                    boostUser: Number(formValue.retrievalKeywordBoostUser),
+                    boostAssistant: Number(formValue.retrievalKeywordBoostAssistant),
+                    stopwords: this.parseStopwords(formValue.retrievalKeywordStopwords),
+                },
+                vectors: {
+                    primary: primaryVector,
+                    profiles: vectorProfiles,
+                },
+                shortTerm: {
+                    enabled: !!formValue.shortTermEnabled,
+                    threshold: Number(formValue.shortTermThreshold),
+                },
+                rerank: {
+                    enabled: !!formValue.rerankEnabled,
+                    topN: Number(formValue.rerankTopN),
+                    usePrimaryRerank: !!formValue.rerankUsePrimary,
+                    boostRecency: Number(formValue.rerankBoostRecency),
+                    weights: {
+                        embedding: Number(formValue.rerankWeightEmbedding),
+                        keyword: Number(formValue.rerankWeightKeyword),
+                        shortTerm: Number(formValue.rerankWeightShortTerm),
+                    },
+                },
+            },
+            lore: {
+                topK: Number(formValue.loreTopK),
+                similarityThreshold: Number(formValue.loreSimilarityThreshold),
+            },
             searchStrategy: {
                 sessionContext: {
                     enabled: formValue.sessionContextEnabled,
@@ -237,11 +428,13 @@ export class RagSettingsComponent implements OnInit {
     saveChanges(): void {
         const changes = this.getChanges();
         if (Object.keys(changes).length > 0) {
-            const updateData = { rag: changes };
+            const updateData = { rag: this.expandPathMap(changes) };
             this.configService.updateConfig$(updateData).subscribe({
                 next: (response) => {
                     console.log('RAG settings updated:', response);
-                    this.originalConfig = this.buildRagConfigFromForm();
+                    this.originalConfig = JSON.parse(
+                        JSON.stringify(this.buildRagConfigFromForm())
+                    );
                 },
                 error: (error) => {
                     console.error('Error updating RAG settings:', error);
@@ -274,5 +467,25 @@ export class RagSettingsComponent implements OnInit {
 
     hasChanges(): boolean {
         return Object.keys(this.getChanges()).length > 0;
+    }
+
+    private expandPathMap(changes: Record<string, any>): Record<string, any> {
+        const result: Record<string, any> = {};
+
+        Object.entries(changes).forEach(([path, value]) => {
+            const keys = path.split('.');
+            let cursor: Record<string, any> = result;
+
+            keys.forEach((key, index) => {
+                if (index === keys.length - 1) {
+                    cursor[key] = value;
+                } else {
+                    cursor[key] = cursor[key] ?? {};
+                    cursor = cursor[key];
+                }
+            });
+        });
+
+        return result;
     }
 }

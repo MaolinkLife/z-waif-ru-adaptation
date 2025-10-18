@@ -23,8 +23,9 @@ from modules.tts.service import (
     check_if_speaking,
 )
 from services import stt_service
-from services.api_service import run_stream_message
+from modules.generative.conversation import generate_stream
 from services.logger_service import log_audit_entry, AuditStatus
+from services.localization_service import get_text
 
 
 class VADListener:
@@ -48,17 +49,29 @@ class VADListener:
     async def start_voice_vad_loop(self):
         """Entry point for the main listening loop."""
         if not get_config_value("voice.enabled", False):
+            message_disabled = get_text(
+                "logger.vad_info",
+                default="[VAD] Voice detection disabled in config",
+            )
+            print(message_disabled)
             log_audit_entry(
                 event_type="vad_info",
-                msg="[VAD] Voice detection disabled in config",
+                msg=message_disabled,
                 status=AuditStatus.INFO,
+                message_key="logger.vad_info",
             )
             return
 
+        start_message = get_text(
+            "logger.vad_start",
+            default="[VAD] Starting voice detection loop",
+        )
+        print(start_message)
         log_audit_entry(
             event_type="vad_start",
-            msg="[VAD] Starting voice detection loop",
+            msg=start_message,
             status=AuditStatus.INFO,
+            message_key="logger.vad_start",
         )
 
         try:
@@ -83,11 +96,20 @@ class VADListener:
 
             def audio_callback(indata, frames, time, status):
                 if status:
+                    status_text = str(status)
+                    status_message = get_text(
+                        "logger.vad_audio_status",
+                        params={"status": status_text},
+                        default="[VAD] Audio callback status: {status}",
+                    )
+                    print(status_message)
                     log_audit_entry(
                         event_type="vad_audio_status",
-                        msg=f"[VAD] Audio callback status: {status}",
+                        msg=status_message,
                         status=AuditStatus.WARNING,
-                        details={"status": str(status)},
+                        details={"status": status_text},
+                        message_key="logger.vad_audio_status",
+                        message_args={"status": status_text},
                     )
 
                 audio_data = (indata[:, 0] * 32767).astype(np.int16)
@@ -101,26 +123,41 @@ class VADListener:
                 dtype="float32",
                 callback=audio_callback,
             ):
+                started_message = get_text(
+                    "logger.vad_stream_started",
+                    default="[VAD] Audio stream started successfully",
+                )
+                print(started_message)
                 log_audit_entry(
                     event_type="vad_stream_started",
-                    msg="[VAD] Audio stream started successfully",
+                    msg=started_message,
                     status=AuditStatus.SUCCESS,
                     details={
                         "device_id": device_id,
                         "sample_rate": self.sample_rate,
                         "chunk_size": chunk_size,
                     },
+                    message_key="logger.vad_stream_started",
                 )
 
                 while self.is_listening:
                     await asyncio.sleep(0.01)
 
         except Exception as e:
+            error_text = str(e)
+            error_message = get_text(
+                "logger.vad_error",
+                params={"error": error_text},
+                default="[VAD] Error in VAD loop: {error}",
+            )
+            print(error_message)
             log_audit_entry(
                 event_type="vad_error",
-                msg=f"[VAD] Error in VAD loop: {str(e)}",
+                msg=error_message,
                 status=AuditStatus.ERROR,
-                details={"error": str(e), "error_type": type(e).__name__},
+                details={"error": error_text, "error_type": type(e).__name__},
+                message_key="logger.vad_error",
+                message_args={"error": error_text},
             )
             raise
 
@@ -177,11 +214,20 @@ class VADListener:
             return False
 
         except Exception as e:
+            error_text = str(e)
+            fallback_message = get_text(
+                "logger.vad_speech_detection_fallback",
+                params={"error": error_text},
+                default="[VAD] Speech detection error, falling back to energy: {error}",
+            )
+            print(fallback_message)
             log_audit_entry(
                 event_type="vad_speech_detection_fallback",
-                msg=f"[VAD] Speech detection error, falling back to energy: {str(e)}",
+                msg=fallback_message,
                 status=AuditStatus.WARNING,
-                details={"error": str(e)},
+                details={"error": error_text},
+                message_key="logger.vad_speech_detection_fallback",
+                message_args={"error": error_text},
             )
             return self.energy_based_vad(audio_data)
 
@@ -200,11 +246,19 @@ class VADListener:
             return
 
         try:
+            segment_start_message = get_text(
+                "logger.vad_speech_segment_start",
+                params={"buffer_size": len(self.audio_buffer)},
+                default="[VAD] Processing speech segment",
+            )
+            print(segment_start_message)
             log_audit_entry(
                 event_type="vad_speech_segment_start",
-                msg="[VAD] Processing speech segment",
+                msg=segment_start_message,
                 status=AuditStatus.INFO,
                 details={"buffer_size": len(self.audio_buffer)},
+                message_key="logger.vad_speech_segment_start",
+                message_args={"buffer_size": len(self.audio_buffer)},
             )
 
             audio_segment = np.concatenate(list(self.audio_buffer))
@@ -225,11 +279,20 @@ class VADListener:
                     os.remove(temp_filename)
 
         except Exception as e:
+            error_text = str(e)
+            processing_error_message = get_text(
+                "logger.vad_processing_error",
+                params={"error": error_text},
+                default="[VAD] Error processing speech segment: {error}",
+            )
+            print(processing_error_message)
             log_audit_entry(
                 event_type="vad_processing_error",
-                msg=f"[VAD] Error processing speech segment: {str(e)}",
+                msg=processing_error_message,
                 status=AuditStatus.ERROR,
-                details={"error": str(e), "error_type": type(e).__name__},
+                details={"error": error_text, "error_type": type(e).__name__},
+                message_key="logger.vad_processing_error",
+                message_args={"error": error_text},
             )
         finally:
             self.reset_detection()
@@ -242,19 +305,33 @@ class VADListener:
             wf.writeframes(audio.tobytes())
 
     async def handle_transcript(self, transcript):
+        transcript_received_message = get_text(
+            "logger.vad_transcript_received",
+            default="[VAD] Transcript received, checking triggers",
+        )
+        print(transcript_received_message)
         log_audit_entry(
             event_type="vad_transcript_received",
-            msg="[VAD] Получена расшифровка, проверяем триггеры",
+            msg=transcript_received_message,
             status=AuditStatus.INFO,
             details={"transcript": transcript},
+            message_key="logger.vad_transcript_received",
         )
 
         if voice_state.stage() != VoiceStage.LISTENING:
+            stage_message = get_text(
+                "logger.vad_stage_blocked",
+                params={"stage": voice_state.stage().value},
+                default="[VAD] Stage does not allow processing transcript",
+            )
+            print(stage_message)
             log_audit_entry(
                 event_type="vad_stage_blocked",
-                msg="[VAD] Стадия не позволяет обрабатывать расшифровку",
+                msg=stage_message,
                 status=AuditStatus.INFO,
                 details={"stage": voice_state.stage().value, "transcript": transcript},
+                message_key="logger.vad_stage_blocked",
+                message_args={"stage": voice_state.stage().value},
             )
             return
 
@@ -262,11 +339,17 @@ class VADListener:
         has_trigger = False
 
         if self._should_bypass_triggers():
+            passthrough_message = get_text(
+                "logger.vad_trigger_passthrough",
+                default="[VAD] Bypassing trigger filter",
+            )
+            print(passthrough_message)
             log_audit_entry(
                 event_type="vad_trigger_passthrough",
-                msg="[VAD] Пропускаем фильтр триггеров",
+                msg=passthrough_message,
                 status=AuditStatus.INFO,
                 details={"transcript": transcript},
+                message_key="logger.vad_trigger_passthrough",
             )
             has_trigger = True
             normalized_transcript = normalized_transcript or transcript
@@ -274,19 +357,31 @@ class VADListener:
             has_trigger = self.contains_trigger_word(transcript)
 
         if not has_trigger:
+            trigger_miss_message = get_text(
+                "logger.vad_trigger_miss",
+                default="[VAD] Trigger not found, skipping message",
+            )
+            print(trigger_miss_message)
             log_audit_entry(
                 event_type="vad_trigger_miss",
-                msg="[VAD] Триггер не найден, пропускаем сообщение",
+                msg=trigger_miss_message,
                 status=AuditStatus.INFO,
                 details={"transcript": transcript},
+                message_key="logger.vad_trigger_miss",
             )
             return
 
+        trigger_hit_message = get_text(
+            "logger.vad_trigger_hit",
+            default="[VAD] Trigger detected, preparing message",
+        )
+        print(trigger_hit_message)
         log_audit_entry(
             event_type="vad_trigger_hit",
-            msg="[VAD] Триггер найден, готовим сообщение",
+            msg=trigger_hit_message,
             status=AuditStatus.SUCCESS,
             details={"transcript": transcript},
+            message_key="logger.vad_trigger_hit",
         )
 
         normalized_transcript = normalized_transcript or self._normalize_text(
@@ -294,31 +389,49 @@ class VADListener:
         )
 
         if is_self_trigger(transcript):
+            self_trigger_message = get_text(
+                "logger.vad_self_trigger",
+                default="[VAD] Ignoring self-trigger",
+            )
+            print(self_trigger_message)
             log_audit_entry(
                 event_type="vad_self_trigger",
-                msg="[VAD] Игнорируем: сработал собственный голос",
+                msg=self_trigger_message,
                 status=AuditStatus.INFO,
                 details={"transcript": transcript},
+                message_key="logger.vad_self_trigger",
             )
             return
 
         if check_if_speaking():
+            force_cut_message = get_text(
+                "logger.vad_force_cut_requested",
+                default="[VAD] Character speaking — cutting current playback",
+            )
+            print(force_cut_message)
             log_audit_entry(
                 event_type="vad_force_cut_requested",
-                msg="[VAD] Персонаж говорит — прерываем текущее воспроизведение",
+                msg=force_cut_message,
                 status=AuditStatus.INFO,
                 details={},
+                message_key="logger.vad_force_cut_requested",
             )
             force_cut_voice()
             await asyncio.sleep(0.1)
 
         normalized_transcript = self._normalize_text(transcript)
         if self._should_bypass_triggers():
+            passthrough_message = get_text(
+                "logger.vad_trigger_passthrough",
+                default="[VAD] Bypassing trigger filter",
+            )
+            print(passthrough_message)
             log_audit_entry(
                 event_type="vad_trigger_passthrough",
-                msg="[VAD] Пропускаем фильтр триггеров",
+                msg=passthrough_message,
                 status=AuditStatus.INFO,
                 details={"transcript": transcript},
+                message_key="logger.vad_trigger_passthrough",
             )
             normalized_transcript = normalized_transcript or transcript
             has_trigger = True
@@ -326,11 +439,17 @@ class VADListener:
             has_trigger = self.contains_trigger_word(transcript)
 
         if not has_trigger:
+            trigger_miss_message = get_text(
+                "logger.vad_trigger_miss",
+                default="[VAD] Trigger not found, skipping message",
+            )
+            print(trigger_miss_message)
             log_audit_entry(
                 event_type="vad_trigger_miss",
-                msg="[VAD] Триггер не найден, пропускаем сообщение",
+                msg=trigger_miss_message,
                 status=AuditStatus.INFO,
                 details={"transcript": transcript},
+                message_key="logger.vad_trigger_miss",
             )
             return
 
@@ -338,20 +457,32 @@ class VADListener:
             transcript
         )
         if not normalized_transcript:
+            empty_message = get_text(
+                "logger.vad_empty_transcript",
+                default="[VAD] Transcript empty after normalization — skipping",
+            )
+            print(empty_message)
             log_audit_entry(
                 event_type="vad_empty_transcript",
-                msg="[VAD] Расшифровка пустая после нормализации — пропускаем",
+                msg=empty_message,
                 status=AuditStatus.INFO,
                 details={"raw": transcript},
+                message_key="logger.vad_empty_transcript",
             )
             return
 
         if normalized_transcript in self.active_transcripts:
+            duplicate_message = get_text(
+                "logger.vad_duplicate_suppressed",
+                default="[VAD] Duplicate active request suppressed",
+            )
+            print(duplicate_message)
             log_audit_entry(
                 event_type="vad_duplicate_suppressed",
-                msg="[VAD] Дубликат активного запроса подавлен",
+                msg=duplicate_message,
                 status=AuditStatus.INFO,
                 details={"transcript": transcript},
+                message_key="logger.vad_duplicate_suppressed",
             )
             return
         if (
@@ -360,11 +491,17 @@ class VADListener:
             and self.last_processed_transcript == normalized_transcript
             and (datetime.utcnow() - self.last_processed_at).total_seconds() < 5
         ):
+            recent_dup_message = get_text(
+                "logger.vad_recent_duplicate",
+                default="[VAD] Repeat transcript within 5 seconds — skipping",
+            )
+            print(recent_dup_message)
             log_audit_entry(
                 event_type="vad_recent_duplicate",
-                msg="[VAD] Повторная расшифровка в пределах 5 секунд — пропускаем",
+                msg=recent_dup_message,
                 status=AuditStatus.INFO,
                 details={"transcript": transcript},
+                message_key="logger.vad_recent_duplicate",
             )
             return
 
@@ -395,6 +532,7 @@ class VADListener:
                 processing_result = await decision_layer.process_message(
                     user_message, None
                 )
+                raw_media_payload = processing_result.pop("raw_media", None)
                 formatted_history = await instructor.format_for_api(
                     processing_result["system_prompt"],
                     processing_result["user_message"],
@@ -404,8 +542,12 @@ class VADListener:
                     await manager.send_message(json.dumps(payload, ensure_ascii=False))
                     return True
 
-                await run_stream_message(
-                    None, formatted_history, send_fn=broadcast_send
+                await generate_stream(
+                    processing_result,
+                    formatted_history,
+                    emit_fn=broadcast_send,
+                    last_user_message=processing_result.get("user_message", user_message),
+                    raw_user_media=raw_media_payload,
                 )
                 log_last_output(transcript)
             finally:
@@ -428,7 +570,7 @@ class VADListener:
 
         trigger_words = get_config_value("audio.trigger_words", []) or []
         if not trigger_words:
-            fallback_name = get_config_value("char_name", "") or ""
+            fallback_name = get_config_value("system.char_name", "") or ""
             if fallback_name:
                 trigger_words = [fallback_name]
 

@@ -39,7 +39,7 @@ def build_memory_context(user_input: str, character: str, max_hits: int = 3) -> 
 
     if not relevant:
         log_audit_entry(
-            event_type="memory_context",
+            event_type="memory_context_empty",
             msg="Nothing similar was found in memory",
             status=AuditStatus.INFO,
             details={"keywords": keywords}
@@ -50,7 +50,8 @@ def build_memory_context(user_input: str, character: str, max_hits: int = 3) -> 
         event_type="memory_context",
         msg=f"Found {len(relevant)} matches from history",
         status=AuditStatus.INFO,
-        details={"keywords": keywords, "entries": [r["content"] for r in relevant]}
+        details={"keywords": keywords, "entries": [r["content"] for r in relevant]},
+        message_args={"matches": len(relevant)}
     )
 
     memory_block = "[MEMORY CONTEXT]\n"

@@ -166,38 +166,37 @@ export class AnalyzerSettingsComponent implements OnInit {
 
     private getChanges(): any {
         const current = this.buildAnalyzerConfigFromForm();
-        const original = this.originalConfig;
-        const changes: Record<string, any> = {};
+        const original = this.originalConfig || {};
+        return this.deepDiff(original, current) || {};
+    }
 
-        const compare = (currentObj: any, originalObj: any, path: string = ''): void => {
-            Object.keys(currentObj).forEach((key) => {
-                const currentPath = path ? `${path}.${key}` : key;
-                const currentValue = currentObj[key];
-                const originalValue = originalObj?.[key];
+    private deepDiff(original: any, current: any): any {
+        if (Array.isArray(current)) {
+            const originalArray = Array.isArray(original) ? original : [];
+            if (JSON.stringify(current) === JSON.stringify(originalArray)) {
+                return undefined;
+            }
+            return current;
+        }
 
-                if (currentValue && typeof currentValue === 'object' && !Array.isArray(currentValue)) {
-                    if (originalValue && typeof originalValue === 'object') {
-                        const nestedChanges: Record<string, any> = {};
-                        compare(currentValue, originalValue, '');
-                        if (Object.keys(nestedChanges).length > 0) {
-                            changes[currentPath] = nestedChanges;
-                        }
-                    } else if (JSON.stringify(currentValue) !== JSON.stringify(originalValue)) {
-                        changes[currentPath] = currentValue;
-                    }
-                } else if (Array.isArray(currentValue)) {
-                    const originalArray = Array.isArray(originalValue) ? originalValue : [];
-                    if (JSON.stringify(currentValue) !== JSON.stringify(originalArray)) {
-                        changes[currentPath] = currentValue;
-                    }
-                } else if (currentValue !== originalValue) {
-                    changes[currentPath] = currentValue;
+        if (current !== null && typeof current === 'object') {
+            const diff: Record<string, any> = {};
+
+            Object.keys(current).forEach((key) => {
+                const value = this.deepDiff(original ? original[key] : undefined, current[key]);
+                if (value !== undefined) {
+                    diff[key] = value;
                 }
             });
-        };
 
-        compare(current, original);
-        return changes;
+            return Object.keys(diff).length > 0 ? diff : undefined;
+        }
+
+        if (current !== original) {
+            return current;
+        }
+
+        return undefined;
     }
 
     hasChanges(): boolean {

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Dict
+
 from modules.tts import TTSManager, TTSRequest
 from modules.tts.state import voice_state
 
@@ -53,3 +55,8 @@ def is_self_trigger(text: str) -> bool:
 
 def shutdown() -> None:
     _tts_manager.shutdown()
+
+
+def describe_providers() -> Dict[str, Dict[str, object]]:
+    print("[TTS Service] Запрос статуса TTS провайдеров.")
+    return _tts_manager.describe_providers()
