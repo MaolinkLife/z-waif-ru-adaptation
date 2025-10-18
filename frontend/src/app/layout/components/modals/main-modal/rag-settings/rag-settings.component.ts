@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray } from '@angular/forms';
 import { ConfigService } from '../../../../../core/services/config.service';
 import { LocalizationService } from '../../../../../shared/pipes/translation/localization.service';
@@ -39,7 +39,8 @@ export class RagSettingsComponent implements OnInit {
     constructor(
         private fb: FormBuilder,
         private configService: ConfigService,
-        private localizationService: LocalizationService
+        private localizationService: LocalizationService,
+        private cdr: ChangeDetectorRef
     ) {
         this.ragForm = this.createForm();
     }
@@ -237,7 +238,11 @@ export class RagSettingsComponent implements OnInit {
             ...retrievalSettings,
             ...strategySettings,
             ...memorySettings
-        });
+        }, { emitEvent: false });
+
+        this.ragForm.updateValueAndValidity({ emitEvent: false });
+        this.ragForm.markAsPristine();
+        this.cdr.detectChanges();
 
         const snapshot = this.buildRagConfigFromForm();
         this.originalConfig = JSON.parse(JSON.stringify(snapshot));
@@ -270,6 +275,9 @@ export class RagSettingsComponent implements OnInit {
                 })
             );
         });
+
+        array.updateValueAndValidity({ emitEvent: false });
+        this.cdr.detectChanges();
     }
 
     private buildVectorProfilesFromForm(): Record<string, RagVectorProfile> {

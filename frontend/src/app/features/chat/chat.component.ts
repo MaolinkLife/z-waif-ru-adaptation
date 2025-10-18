@@ -571,6 +571,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     stopVoice() {
         this.voiceService.stopPlay$().subscribe();
+        this.currentPlayingMessage = null;
     }
 
     playMessage(msg: Message) {

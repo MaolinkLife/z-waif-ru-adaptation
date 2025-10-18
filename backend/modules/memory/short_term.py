@@ -26,8 +26,12 @@ DEFAULT_SIMILARITY_THRESHOLD = 0.7
 
 def _get_primary_vector_profile() -> dict:
     retrieval_cfg = get_config_value("rag.retrieval", {}) or {}
-    vectors_cfg = retrieval_cfg.get("vectors", {}) if isinstance(retrieval_cfg, dict) else {}
-    profiles_cfg = vectors_cfg.get("profiles", {}) if isinstance(vectors_cfg, dict) else {}
+    vectors_cfg = (
+        retrieval_cfg.get("vectors", {}) if isinstance(retrieval_cfg, dict) else {}
+    )
+    profiles_cfg = (
+        vectors_cfg.get("profiles", {}) if isinstance(vectors_cfg, dict) else {}
+    )
     primary_name = vectors_cfg.get("primary")
     if primary_name and isinstance(profiles_cfg, dict) and primary_name in profiles_cfg:
         profile = dict(profiles_cfg.get(primary_name) or {})
@@ -55,6 +59,7 @@ class ShortTermRecord:
 # ---------------------------------------------------------------------------
 # Schema helpers
 # ---------------------------------------------------------------------------
+
 
 def _execute_sql(statement: str) -> None:
     with engine.connect() as connection:
@@ -140,6 +145,7 @@ def _ensure_column(table: str, column: str, ddl: str) -> None:
 # ---------------------------------------------------------------------------
 # Data preparation
 # ---------------------------------------------------------------------------
+
 
 def refresh_recent_days(
     character_id: str,
@@ -275,9 +281,9 @@ def _generate_day_summary(
     system_message = {
         "role": "system",
         "content": (
-            "Ты помощник, который сжимает беседу за день. Верни JSON с полями "
-            "summary (строка) и themes (список из 3-7 коротких тегов, латиницей или "
-            "транслитом)."
+            "You are an assistant that summarizes daily conversations. "
+            "Return JSON with fields: "
+            "summary (string) and themes (list of 3–7 short tags, in Latin or transliterated)."
         ),
     }
     user_message = {
@@ -320,6 +326,7 @@ def _generate_day_summary(
 # ---------------------------------------------------------------------------
 # Retrieval helpers
 # ---------------------------------------------------------------------------
+
 
 def load_recent_records(days: int = 7) -> List[ShortTermRecord]:
     session: Session = SessionLocal()
@@ -367,8 +374,12 @@ def find_matching_record(
     best_score = -math.inf
 
     profile_cfg = _get_primary_vector_profile()
-    provider = profile_cfg.get("provider", get_config_value("memory.embedding_provider", Provider.AUTO))
-    model = profile_cfg.get("model") or get_config_value("memory.embedding_model", "nomic-embed-text")
+    provider = profile_cfg.get(
+        "provider", get_config_value("memory.embedding_provider", Provider.AUTO)
+    )
+    model = profile_cfg.get("model") or get_config_value(
+        "memory.embedding_model", "nomic-embed-text"
+    )
 
     for record in records:
         record_embedding = get_embedding(

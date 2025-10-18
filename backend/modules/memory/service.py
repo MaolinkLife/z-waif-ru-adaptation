@@ -1140,7 +1140,13 @@ class MemoryModule:
         if not timestamp:
             return None
         try:
-            return datetime.fromisoformat(str(timestamp).replace("Z", "+00:00"))
+            parsed = datetime.fromisoformat(str(timestamp).replace("Z", "+00:00"))
         except Exception:
             return None
+
+        # Always work in UTC to avoid mixing naive and aware datetimes downstream.
+        if parsed.tzinfo is None:
+            return parsed.replace(tzinfo=timezone.utc)
+
+        return parsed.astimezone(timezone.utc)
 

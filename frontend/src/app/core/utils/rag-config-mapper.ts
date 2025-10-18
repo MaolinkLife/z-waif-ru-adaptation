@@ -46,6 +46,25 @@ const toOptionalNumber = (value: unknown): number | undefined => {
     return Number.isFinite(num) ? num : undefined;
 };
 
+const pruneUndefined = (value: any): any => {
+    if (Array.isArray(value) || typeof value !== 'object' || value === null) {
+        return value;
+    }
+
+    const result: Record<string, any> = {};
+    Object.entries(value).forEach(([key, entry]) => {
+        const pruned = pruneUndefined(entry);
+        if (
+            pruned !== undefined &&
+            !(typeof pruned === 'object' && pruned !== null && Object.keys(pruned).length === 0)
+        ) {
+            result[key] = pruned;
+        }
+    });
+
+    return result;
+};
+
 const mapVectorProfilesDtoToModel = (
     profiles: Record<string, RagVectorProfileDto> | undefined,
 ): Record<string, RagVectorProfile> => {
@@ -64,9 +83,7 @@ const mapVectorProfilesDtoToModel = (
                 topK: profile?.top_k ?? defaults.topK ?? 5,
                 threshold: profile?.threshold ?? defaults.threshold ?? 0.9,
                 endpoint: profile?.endpoint ?? defaults.endpoint,
-                timeout: toOptionalNumber(
-                    profile?.timeout ?? defaults.timeout,
-                ),
+                timeout: toOptionalNumber(profile?.timeout ?? defaults.timeout),
                 maxRetries: toOptionalNumber(
                     profile?.max_retries ?? defaults.maxRetries,
                 ),
@@ -80,6 +97,9 @@ const mapVectorProfilesDtoToModel = (
         {},
     );
 };
+
+const camelToSnake = (value: string): string =>
+    value.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
 
 const mapVectorProfilesModelToDto = (
     profiles: Record<string, RagVectorProfile> | undefined,
@@ -123,11 +143,150 @@ const mapVectorProfilesModelToDto = (
     );
 };
 
+const mapSearchStrategyDtoToModel = (dto: any | undefined) => {
+    if (!dto) {
+        return undefined;
+    }
+
+    const session = dto.sessionContext ?? dto.session_context ?? {};
+    const daily = dto.dailySummary ?? dto.daily_summary ?? {};
+    const longTerm = dto.longTermMemory ?? dto.long_term_memory ?? {};
+    const fallback = dto.fallback ?? {};
+
+    return {
+        sessionContext: {
+            enabled: session.enabled ?? true,
+            maxMessages: session.maxMessages ?? session.max_messages ?? 32,
+            lookBackToToday:
+                session.lookBackToToday ?? session.look_back_to_today ?? true,
+        },
+        dailySummary: {
+            enabled: daily.enabled ?? true,
+            lookBackDays: daily.lookBackDays ?? daily.look_back_days ?? 7,
+            useTags: daily.useTags ?? daily.use_tags ?? true,
+        },
+        longTermMemory: {
+            enabled: longTerm.enabled ?? true,
+            vectorSearch:
+                longTerm.vectorSearch ?? longTerm.vector_search ?? true,
+            graphSearch: longTerm.graphSearch ?? longTerm.graph_search ?? true,
+            priorityRules:
+                longTerm.priorityRules ??
+                longTerm.priority_rules ??
+                [],
+        },
+        fallback: {
+            askUser: fallback.askUser ?? fallback.ask_user ?? true,
+            autoLearn: fallback.autoLearn ?? fallback.auto_learn ?? true,
+        },
+    };
+};
+
+const mapSearchStrategyModelToDto = (
+    strategy: RagConfig['searchStrategy'],
+): any | undefined => {
+    if (!strategy) {
+        return undefined;
+    }
+
+    const session = strategy.sessionContext;
+    const daily = strategy.dailySummary;
+    const longTerm = strategy.longTermMemory;
+    const fallback = strategy.fallback;
+
+    const result = {
+        session_context: session
+            ? {
+                  enabled: session.enabled,
+                  max_messages: session.maxMessages,
+                  look_back_to_today: session.lookBackToToday,
+              }
+            : undefined,
+        daily_summary: daily
+            ? {
+                  enabled: daily.enabled,
+                  look_back_days: daily.lookBackDays,
+                  use_tags: daily.useTags,
+              }
+            : undefined,
+        long_term_memory: longTerm
+            ? {
+                  enabled: longTerm.enabled,
+                  vector_search: longTerm.vectorSearch,
+                  graph_search: longTerm.graphSearch,
+                  priority_rules: longTerm.priorityRules,
+              }
+            : undefined,
+        fallback: fallback
+            ? {
+                  ask_user: fallback.askUser,
+                  auto_learn: fallback.autoLearn,
+              }
+            : undefined,
+    };
+
+    const pruned = pruneUndefined(result);
+    return Object.keys(pruned).length > 0 ? pruned : undefined;
+};
+
+const mapMemoryDtoToModel = (dto: any | undefined) => {
+    if (!dto) {
+        return undefined;
+    }
+
+    const facts = dto.facts ?? {};
+    const graph = dto.graph ?? {};
+
+    return {
+        facts: {
+            enabled: facts.enabled ?? true,
+            autoUpdate: facts.autoUpdate ?? facts.auto_update ?? true,
+            priorityRules:
+                facts.priorityRules ?? facts.priority_rules ?? [],
+        },
+        graph: {
+            enabled: graph.enabled ?? true,
+            relationships: graph.relationships ?? true,
+            inference: graph.inference ?? true,
+        },
+    };
+};
+
+const mapMemoryModelToDto = (memory: RagConfig['memory']): any | undefined => {
+    if (!memory) {
+        return undefined;
+    }
+
+    const facts = memory.facts;
+    const graph = memory.graph;
+
+    const result = {
+        facts: facts
+            ? {
+                  enabled: facts.enabled,
+                  auto_update: facts.autoUpdate,
+                  priority_rules: facts.priorityRules,
+              }
+            : undefined,
+        graph: graph
+            ? {
+                  enabled: graph.enabled,
+                  relationships: graph.relationships,
+                  inference: graph.inference,
+              }
+            : undefined,
+    };
+
+    const pruned = pruneUndefined(result);
+    return Object.keys(pruned).length > 0 ? pruned : undefined;
+};
+
 const mapRetrievalDtoToModel = (dto: RagRetrievalDto | undefined) => {
     if (!dto) {
         return undefined;
     }
 
+    const sessionDto = dto.session ?? {};
     const keywordDto = dto.keyword ?? {};
     const vectorsDto = dto.vectors ?? {};
     const shortTermDto = dto.short_term ?? {};
@@ -139,8 +298,8 @@ const mapRetrievalDtoToModel = (dto: RagRetrievalDto | undefined) => {
             limit: dto.recent?.limit ?? 32,
         },
         session: {
-            enabled: dto.session?.enabled ?? true,
-            window: dto.session?.window ?? 'day',
+            enabled: sessionDto.enabled ?? true,
+            window: sessionDto.window ?? 'day',
         },
         keyword: {
             enabled: keywordDto.enabled ?? true,
@@ -192,45 +351,66 @@ const mapRetrievalModelToDto = (retrieval: RagConfig['retrieval'] | undefined): 
         return undefined;
     }
 
-    return {
-        recent: { limit: retrieval.recent.limit },
-        session: {
-            enabled: retrieval.session.enabled,
-            window: retrieval.session.window,
-        },
-        keyword: {
-            enabled: retrieval.keyword.enabled,
-            max_candidates: retrieval.keyword.maxCandidates,
-            min_score: retrieval.keyword.minScore,
-            min_overlap: retrieval.keyword.minOverlap,
-            boost_user: retrieval.keyword.boostUser,
-            boost_assistant: retrieval.keyword.boostAssistant,
-            stopwords: retrieval.keyword.stopwords,
-        },
-        vectors: {
-            primary: retrieval.vectors.primary,
-            profiles: mapVectorProfilesModelToDto(retrieval.vectors.profiles),
-        },
-        short_term: {
-            enabled: retrieval.shortTerm.enabled,
-            threshold: retrieval.shortTerm.threshold,
-        },
-        rerank: {
-            enabled: retrieval.rerank.enabled,
-            top_n: retrieval.rerank.topN,
-            use_primary_rerank: retrieval.rerank.usePrimaryRerank,
-            boost_recency: retrieval.rerank.boostRecency,
-            weights: {
-                embedding: retrieval.rerank.weights.embedding,
-                keyword: retrieval.rerank.weights.keyword,
-                short_term: retrieval.rerank.weights.shortTerm,
-            },
-        },
+    const result = {
+        recent: retrieval.recent
+            ? {
+                  limit: retrieval.recent.limit,
+              }
+            : undefined,
+        session: retrieval.session
+            ? {
+                  enabled: retrieval.session.enabled,
+                  window: retrieval.session.window,
+              }
+            : undefined,
+        keyword: retrieval.keyword
+            ? {
+                  enabled: retrieval.keyword.enabled,
+                  max_candidates: retrieval.keyword.maxCandidates,
+                  min_score: retrieval.keyword.minScore,
+                  min_overlap: retrieval.keyword.minOverlap,
+                  boost_user: retrieval.keyword.boostUser,
+                  boost_assistant: retrieval.keyword.boostAssistant,
+                  stopwords: retrieval.keyword.stopwords,
+              }
+            : undefined,
+        vectors: retrieval.vectors
+            ? {
+                  primary: retrieval.vectors.primary,
+                  profiles: mapVectorProfilesModelToDto(retrieval.vectors.profiles),
+              }
+            : undefined,
+        short_term: retrieval.shortTerm
+            ? {
+                  enabled: retrieval.shortTerm.enabled,
+                  threshold: retrieval.shortTerm.threshold,
+              }
+            : undefined,
+        rerank: retrieval.rerank
+            ? {
+                  enabled: retrieval.rerank.enabled,
+                  top_n: retrieval.rerank.topN,
+                  use_primary_rerank: retrieval.rerank.usePrimaryRerank,
+                  boost_recency: retrieval.rerank.boostRecency,
+                  weights: retrieval.rerank.weights
+                      ? {
+                            embedding: retrieval.rerank.weights.embedding,
+                            keyword: retrieval.rerank.weights.keyword,
+                            short_term: retrieval.rerank.weights.shortTerm,
+                        }
+                      : undefined,
+              }
+            : undefined,
     };
+
+    const pruned = pruneUndefined(result);
+    return Object.keys(pruned).length > 0 ? (pruned as RagRetrievalDto) : undefined;
 };
 
 export const mapRagDtoToModel = (dto: RagConfigDto | null | undefined): RagConfig => {
     const retrieval = mapRetrievalDtoToModel(dto?.retrieval);
+    const searchStrategy = mapSearchStrategyDtoToModel(dto?.search_strategy);
+    const memory = mapMemoryDtoToModel(dto?.memory);
 
     return {
         enabled: dto?.enabled ?? false,
@@ -249,11 +429,15 @@ export const mapRagDtoToModel = (dto: RagConfigDto | null | undefined): RagConfi
                   similarityThreshold: dto.lore.similarity_threshold ?? 0.7,
               }
             : undefined,
+        searchStrategy,
+        memory,
     };
 };
 
 export const mapRagModelToDto = (rag: RagConfig): RagConfigDto => {
     const retrieval = mapRetrievalModelToDto(rag.retrieval);
+    const searchStrategy = mapSearchStrategyModelToDto(rag.searchStrategy);
+    const memory = mapMemoryModelToDto(rag.memory);
 
     return {
         enabled: rag.enabled,
@@ -272,5 +456,29 @@ export const mapRagModelToDto = (rag: RagConfig): RagConfigDto => {
                   similarity_threshold: rag.lore.similarityThreshold,
               }
             : undefined,
+        search_strategy: searchStrategy,
+        memory,
     };
 };
+
+const mapPartialRagValueToDto = (value: any): any => {
+    if (value === null || value === undefined) {
+        return value;
+    }
+    if (Array.isArray(value)) {
+        return value.map((item) => mapPartialRagValueToDto(item));
+    }
+    if (typeof value !== 'object') {
+        return value;
+    }
+
+    const result: Record<string, any> = {};
+    Object.entries(value).forEach(([key, entry]) => {
+        const snakeKey = camelToSnake(key);
+        result[snakeKey] = mapPartialRagValueToDto(entry);
+    });
+    return result;
+};
+
+export const mapPartialRagModelToDto = (value: any): any =>
+    pruneUndefined(mapPartialRagValueToDto(value));

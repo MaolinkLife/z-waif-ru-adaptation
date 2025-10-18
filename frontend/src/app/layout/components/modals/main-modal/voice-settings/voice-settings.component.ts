@@ -29,6 +29,7 @@ interface VoiceModuleOption {
     value: string;
     label: string;
     available: boolean;
+    disabled: boolean;
     tooltip?: string;
 }
 
@@ -50,10 +51,10 @@ export class VoiceSettingsComponent implements OnInit {
     edgeVoices: { name: string; language: string; gender: string; styles: string[] }[] = [];
 
     private readonly baseVoiceModules: VoiceModuleOption[] = [
-        { value: 'elevenlabs', label: 'ElevenLabs', available: true },
-        { value: 'edge', label: 'Edge TTS', available: true },
-        { value: 'gtts', label: 'gTTS (Google)', available: true },
-        { value: 'offline', label: 'Offline (pyttsx3)', available: true },
+        { value: 'elevenlabs', label: 'ElevenLabs', available: true, disabled: false },
+        { value: 'edge', label: 'Edge TTS', available: true, disabled: false },
+        { value: 'gtts', label: 'gTTS (Google)', available: true, disabled: false },
+        { value: 'offline', label: 'Offline (pyttsx3)', available: true, disabled: false },
     ];
 
     voiceModules: VoiceModuleOption[] = this.baseVoiceModules.map((module) => ({ ...module }));
@@ -449,7 +450,9 @@ export class VoiceSettingsComponent implements OnInit {
                 return { ...module };
             }
 
-            const available = status.available && !status.disabled;
+            const providerAvailable = status.available;
+            const providerDisabled = status.disabled;
+            const displayAvailable = providerAvailable && !providerDisabled;
             const tooltipLines: string[] = [];
             if (!status.available) {
                 tooltipLines.push(this.t('settings.voiceProviderUnavailable', 'Provider unavailable'));
@@ -470,7 +473,8 @@ export class VoiceSettingsComponent implements OnInit {
 
             return {
                 ...module,
-                available,
+                available: displayAvailable,
+                disabled: providerDisabled,
                 tooltip: tooltipLines.length > 0 ? tooltipLines.join('\n') : undefined,
             };
         });

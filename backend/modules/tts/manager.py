@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import queue
 import threading
@@ -18,7 +19,7 @@ from modules.tts.providers.edge import EdgeTTSProvider
 from modules.tts.providers.elevenlabs import ElevenLabsProvider
 from modules.tts.providers.gtts import GTTSProvider
 from modules.tts.providers.offline import OfflineTTSProvider
-from modules.tts.state import VoiceStage, voice_state
+from modules.tts.state import voice_state
 from modules.tts.types import TTSRequest, TTSResult
 from services.config_service import get_config_value
 from services.logger_service import AuditStatus, log_audit_entry
@@ -86,6 +87,20 @@ class TTSManager:
     It also includes mechanisms to prevent self-triggering and track recent outputs.
     """
 
+    def _debug(self, event: str, **details) -> None:
+        """
+        Emit structured debugging information to stdout for live troubleshooting.
+        Keeps JSON format when possible so logs are machine-readable.
+        """
+        payload = {"event": event}
+        if details:
+            payload.update(details)
+        try:
+            print(f"[TTS DEBUG] {json.dumps(payload, ensure_ascii=False)}")
+        except Exception:
+            # Fallback if some detail is not JSON serializable.
+            print(f"[TTS DEBUG] {event}: {details}")
+
     def __init__(self) -> None:
         """
         Initialize the TTS Manager with all required components.
@@ -134,6 +149,11 @@ class TTSManager:
             "tts_manager_started",
             "[TTS] TTS Manager started successfully",
             AuditStatus.INFO,
+        )
+        self._debug(
+            "manager_initialized",
+            provider_retry_seconds=self._provider_retry_seconds,
+            provider_names=list(self._providers.keys()),
         )
 
     def _build_providers(self) -> Dict[str, TTSProvider]:
@@ -545,6 +565,11 @@ class TTSManager:
                 "request_id": getattr(request, "id", "unknown"),
             },
         )
+        self._debug(
+            "synthesize_start",
+            text_length=len(request.text),
+            output_path=output_path,
+        )
 
         if not get_config_value("voice.enabled", False):
             log_audit_entry(
@@ -553,6 +578,7 @@ class TTSManager:
                 AuditStatus.WARNING,
                 details={"output_path": output_path},
             )
+            self._debug("synthesize_voice_disabled", output_path=output_path)
             return TTSResult(success=False, error="voice_disabled")
 
         sequence = self._provider_sequence()
@@ -566,10 +592,16 @@ class TTSManager:
                 AuditStatus.ERROR,
                 details={"failed": failed},
             )
+            self._debug("provider_sequence_empty", failed=failed)
             return TTSResult(success=False, error="no_provider_available")
 
         last_error: Optional[str] = None
         primary_name = sequence[0].name if sequence else None
+        self._debug(
+            "provider_sequence",
+            providers=[p.name for p in sequence],
+            primary=primary_name,
+        )
 
         log_audit_entry(
             "tts_synthesize_trying_providers",
@@ -583,6 +615,7 @@ class TTSManager:
         )
 
         for provider in sequence:
+            self._debug("provider_attempt", provider=provider.name)
             self._log_provider_attempt(provider.name)
             if not provider.is_available():
                 log_audit_entry(
@@ -591,6 +624,7 @@ class TTSManager:
                     AuditStatus.WARNING,
                     details={"provider": provider.name},
                 )
+                self._debug("provider_not_available", provider=provider.name)
                 last_error = f"{provider.name}_unavailable"
                 self._mark_provider_failed(provider.name, "unavailable")
                 continue
@@ -609,6 +643,12 @@ class TTSManager:
                 result = provider.synthesize(request, output_path)
                 result.provider = provider.name
                 result.fallback_used = provider.name != primary_name
+                self._debug(
+                    "provider_success",
+                    provider=provider.name,
+                    fallback_used=result.fallback_used,
+                    duration_ms=getattr(result, "duration_ms", None),
+                )
 
                 self._record_output(request.text)
                 self._clear_provider_failure(provider.name)
@@ -631,6 +671,11 @@ class TTSManager:
                 return result
             except TTSProviderError as exc:
                 last_error = str(exc)
+                self._debug(
+                    "provider_error",
+                    provider=provider.name,
+                    error=last_error,
+                )
                 log_audit_entry(
                     "voice_provider_error",
                     "[Voice] Provider error during synthesis",
@@ -654,6 +699,11 @@ class TTSManager:
                             AuditStatus.WARNING,
                             details={"path": output_path, "error": str(e)},
                         )
+                        self._debug(
+                            "temp_cleanup_error",
+                            path=output_path,
+                            error=str(e),
+                        )
 
         log_audit_entry(
             "tts_synthesize_failed",
@@ -664,6 +714,12 @@ class TTSManager:
                 "last_error": last_error,
                 "attempted_engines": [p.name for p in sequence],
             },
+        )
+        self._debug(
+            "synthesize_all_failed",
+            output_path=output_path,
+            last_error=last_error,
+            attempted=[p.name for p in sequence],
         )
 
         return TTSResult(
@@ -712,6 +768,12 @@ class TTSManager:
                 "queue_size": self._queue.qsize(),
             },
         )
+        self._debug(
+            "enqueue",
+            text_length=len(text),
+            refuse_pause=refuse_pause,
+            queue_size=self._queue.qsize(),
+        )
 
         self._queue.put((request, refuse_pause))
 
@@ -723,6 +785,7 @@ class TTSManager:
         log_audit_entry(
             "tts_worker_started", "[TTS] Worker thread started", AuditStatus.INFO
         )
+        self._debug("worker_started")
 
         while not self._worker_stop.is_set():
             try:
@@ -746,18 +809,32 @@ class TTSManager:
                     "[TTS] Worker received stop signal",
                     AuditStatus.INFO,
                 )
+                self._debug("worker_stop_signal")
                 self._queue.task_done()
                 break
 
             request, refuse_pause = item
+            result: Optional[TTSResult] = None
             try:
                 if self._interrupt.is_set():
+                    current_stage = voice_state.stage().value
                     log_audit_entry(
                         "tts_worker_interrupted",
-                        "[TTS] Worker interrupted, skipping request",
+                        "[TTS] Worker detected interrupt flag",
                         AuditStatus.INFO,
+                        details={"stage": current_stage, "queue_remaining": self._queue.qsize()},
                     )
-                    continue
+                    self._debug(
+                        "worker_interrupt_flag_detected",
+                        stage=current_stage,
+                        queue_remaining=self._queue.qsize(),
+                    )
+                    self._interrupt.clear()
+                    self._debug(
+                        "worker_interrupt_flag_cleared",
+                        stage=current_stage,
+                        queue_remaining=self._queue.qsize(),
+                    )
 
                 log_audit_entry(
                     "tts_worker_processing",
@@ -768,8 +845,21 @@ class TTSManager:
                         "refuse_pause": refuse_pause,
                     },
                 )
+                self._debug(
+                    "worker_processing_start",
+                    text_length=len(request.text),
+                    refuse_pause=refuse_pause,
+                    queue_remaining=self._queue.qsize(),
+                )
 
-                self._speak_immediate(request.text, refuse_pause=refuse_pause)
+                result = self._speak_immediate(request.text, refuse_pause=refuse_pause)
+                self._debug(
+                    "worker_processing_done",
+                    success=result.success if result else None,
+                    error=result.error if result else None,
+                    provider=result.provider if result else None,
+                    queue_remaining=self._queue.qsize(),
+                )
             except Exception as e:
                 log_audit_entry(
                     "tts_worker_processing_error",
@@ -777,12 +867,18 @@ class TTSManager:
                     AuditStatus.ERROR,
                     details={"error": str(e), "text": request.text[:50]},
                 )
+                self._debug(
+                    "worker_processing_error",
+                    error=str(e),
+                    text_preview=request.text[:160],
+                )
             finally:
                 self._queue.task_done()
 
         log_audit_entry(
             "tts_worker_stopped", "[TTS] Worker thread stopped", AuditStatus.INFO
         )
+        self._debug("worker_stopped")
 
     def _speak_immediate(self, text: str, refuse_pause: bool = False) -> TTSResult:
         """
@@ -818,6 +914,12 @@ class TTSManager:
                 "text_length": len(text),
             },
         )
+        self._debug(
+            "chunks_prepared",
+            chunk_total=len(cleaned_chunks),
+            text_length=len(text),
+            refuse_pause=refuse_pause,
+        )
 
         if not cleaned_chunks:
             log_audit_entry(
@@ -826,6 +928,7 @@ class TTSManager:
                 AuditStatus.WARNING,
                 details={"original_text": text},
             )
+            self._debug("no_chunks_after_cleanup")
             return TTSResult(success=False, error="empty_text")
 
         voice_state.enter_speaking("tts_active")
@@ -858,6 +961,14 @@ class TTSManager:
                 os.close(tmp_fd)
 
                 try:
+                    self._debug(
+                        "chunk_begin",
+                        chunk_index=idx,
+                        chunk_total=len(cleaned_chunks),
+                        chunk_length=len(chunk),
+                        chunk_preview=chunk[:120],
+                    )
+
                     log_audit_entry(
                         "tts_synthesizing_chunk",
                         "[TTS] Synthesizing text chunk",
@@ -871,6 +982,14 @@ class TTSManager:
 
                     result = self.synthesize_to_file(TTSRequest(text=chunk), tmp_path)
                     last_result = result
+                    self._debug(
+                        "chunk_synthesize_result",
+                        chunk_index=idx,
+                        success=result.success,
+                        provider=result.provider,
+                        error=result.error,
+                        attempted=result.attempted_engines,
+                    )
 
                     if not result.success:
                         log_audit_entry(
@@ -883,6 +1002,12 @@ class TTSManager:
                                 "attempted_engines": result.attempted_engines,
                             },
                         )
+                        self._debug(
+                            "chunk_failed",
+                            chunk_index=idx,
+                            error=result.error,
+                            attempted=result.attempted_engines,
+                        )
                         return result
 
                     if self._interrupt.is_set():
@@ -892,6 +1017,7 @@ class TTSManager:
                             AuditStatus.INFO,
                             details={"chunk_index": idx},
                         )
+                        self._debug("chunk_interrupted_before_playback", chunk_index=idx)
                         return TTSResult(success=False, error="interrupted")
 
                     log_audit_entry(
@@ -904,8 +1030,15 @@ class TTSManager:
                             "duration_ms": getattr(result, "duration_ms", None),
                         },
                     )
+                    self._debug(
+                        "chunk_playback_start",
+                        chunk_index=idx,
+                        file_path=tmp_path,
+                        duration_ms=getattr(result, "duration_ms", None),
+                    )
 
                     self._audio.play_file(tmp_path, interrupt_event=self._interrupt)
+                    self._debug("chunk_playback_done", chunk_index=idx)
 
                     if self._interrupt.is_set():
                         log_audit_entry(
@@ -914,6 +1047,7 @@ class TTSManager:
                             AuditStatus.INFO,
                             details={"chunk_index": idx},
                         )
+                        self._debug("chunk_interrupted_during_playback", chunk_index=idx)
                         return TTSResult(success=False, error="interrupted")
 
                     pause_duration = 0.001 if refuse_pause else 0.01
@@ -924,6 +1058,11 @@ class TTSManager:
                         "[TTS] Chunk completed successfully",
                         AuditStatus.INFO,
                         details={"chunk_index": idx, "pause_duration": pause_duration},
+                    )
+                    self._debug(
+                        "chunk_completed",
+                        chunk_index=idx,
+                        pause_duration=pause_duration,
                     )
 
                 finally:
@@ -943,6 +1082,12 @@ class TTSManager:
                                 AuditStatus.WARNING,
                                 details={"path": tmp_path, "error": str(e)},
                             )
+                            self._debug(
+                                "chunk_temp_cleanup_error",
+                                chunk_index=idx,
+                                path=tmp_path,
+                                error=str(e),
+                            )
 
             self._record_output(text)
 
@@ -955,15 +1100,23 @@ class TTSManager:
                     "success": last_result.success if last_result else False,
                 },
             )
+            self._debug(
+                "speech_completed",
+                chunk_total=len(cleaned_chunks),
+                success=bool(last_result and last_result.success),
+                provider=last_result.provider if last_result else None,
+            )
 
             return last_result or TTSResult(success=True)
         finally:
+            self._interrupt.clear()
             voice_state.enter_listening("tts_idle")
             log_audit_entry(
                 "tts_exit_speaking_state",
                 "[TTS] Exited speaking state",
                 AuditStatus.INFO,
             )
+            self._debug("speaking_state_exit")
 
     def _clear_pending_requests(self) -> int:
         """

@@ -57,50 +57,45 @@ class AudioPlayback:
         samples = np.array(sound.get_array_of_samples()).astype(np.float32)
         samples /= np.iinfo(sound.array_type).max
 
-        devices: List[int] = []
-        if get_config_value("voice.use_windows_output", True):
-            windows_id = get_config_value("voice.windows_output_id", 0)
-            if isinstance(windows_id, str):
-                try:
-                    windows_id = int(windows_id)
-                except ValueError:
-                    message_config_error = get_text(
-                        "logger.voice_config_error",
-                        params={"config_key": "windows_output_id", "value": windows_id},
-                        default=f"[Audio Playback] Invalid windows_output_id: {windows_id}, using default",
-                    )
-                    print(message_config_error)
-                    log_audit_entry(
-                        "voice_config_error",
-                        message_config_error,
-                        AuditStatus.WARNING,
-                        message_key="logger.voice_config_error",
-                        message_args={"config_key": "windows_output_id", "value": windows_id},
-                    )
-                    windows_id = 0
-            devices.append(windows_id)
+        def _resolve_device_id(path: str, short_key: str, default: int) -> int:
+            raw_value = get_config_value(path, default)
+            try:
+                return int(raw_value)
+            except (TypeError, ValueError):
+                message_config_error = get_text(
+                    "logger.voice_config_error",
+                    params={"config_key": short_key, "value": raw_value},
+                    default=f"[Audio Playback] Invalid {short_key}: {raw_value}, using default",
+                )
+                print(message_config_error)
+                log_audit_entry(
+                    "voice_config_error",
+                    message_config_error,
+                    AuditStatus.WARNING,
+                    message_key="logger.voice_config_error",
+                    message_args={"config_key": short_key, "value": raw_value},
+                )
+                return default
 
-        if get_config_value("voice.use_rvc", False):
-            output_id = get_config_value("voice.output_id", 0)
-            if isinstance(output_id, str):
-                try:
-                    output_id = int(output_id)
-                except ValueError:
-                    message_config_error = get_text(
-                        "logger.voice_config_error",
-                        params={"config_key": "output_id", "value": output_id},
-                        default=f"[Audio Playback] Invalid output_id: {output_id}, using default",
-                    )
-                    print(message_config_error)
-                    log_audit_entry(
-                        "voice_config_error",
-                        message_config_error,
-                        AuditStatus.WARNING,
-                        message_key="logger.voice_config_error",
-                        message_args={"config_key": "output_id", "value": output_id},
-                    )
-                    output_id = 0
-            devices.append(output_id)
+        devices: List[int] = []
+        use_windows_output = get_config_value("voice.use_windows_output", True)
+        use_rvc = get_config_value("voice.use_rvc", False)
+        windows_id = _resolve_device_id("voice.windows_output_id", "windows_output_id", 0)
+        output_id = _resolve_device_id("voice.output_id", "output_id", 0)
+
+        def _append_device(device_id: int) -> None:
+            if device_id in devices:
+                return
+            devices.append(device_id)
+
+        if use_windows_output:
+            _append_device(windows_id)
+
+        if use_rvc:
+            _append_device(output_id)
+
+        if not devices:
+            _append_device(output_id)
 
         formatted_devices = ""
         for i, device in enumerate(devices):

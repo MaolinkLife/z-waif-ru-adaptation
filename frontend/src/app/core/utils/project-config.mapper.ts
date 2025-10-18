@@ -18,7 +18,8 @@ import {
 } from './audio-config-mapper';
 import {
     mapRagDtoToModel,
-    mapRagModelToDto
+    mapRagModelToDto,
+    mapPartialRagModelToDto
 } from './rag-config-mapper';
 import {
     mapAnalyzerDtoToModel,
@@ -74,6 +75,28 @@ export const mapPartialModelToDto = (
 ): Partial<ProjectConfigDto> => {
     const dto: Partial<ProjectConfigDto> = {};
 
+    const isFullRagConfig = (value: any): boolean => {
+        if (!value || typeof value !== 'object') {
+            return false;
+        }
+        const requiredKeys = [
+            'enabled',
+            'embeddingModel',
+            'vectorDbPath',
+            'chunkSize',
+            'chunkOverlap',
+            'topK',
+            'similarityThreshold',
+            'enableCaching',
+            'cacheTtl',
+            'retrieval',
+            'lore',
+            'searchStrategy',
+            'memory',
+        ];
+        return requiredKeys.every((key) => key in value);
+    };
+
     Object.keys(model).forEach((key) => {
         switch (key) {
             case 'voice':
@@ -89,10 +112,10 @@ export const mapPartialModelToDto = (
                 dto.audio = mapAudioModelToDto(model.audio!);
                 break;
             case 'rag':
-                if (model.rag && Object.keys(model.rag).some((k) => k.includes('.'))) {
-                    dto.rag = model.rag as any;
-                } else {
-                    dto.rag = mapRagModelToDto(model.rag!);
+                if (model.rag) {
+                    dto.rag = isFullRagConfig(model.rag)
+                        ? mapRagModelToDto(model.rag as any)
+                        : mapPartialRagModelToDto(model.rag);
                 }
                 break;
             case 'analyzer':
